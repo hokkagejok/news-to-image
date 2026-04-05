@@ -3,20 +3,20 @@
 Два стиля: "world" (TIN THE GIOI) и "vietnam" (TIN VIET NAM).
 
 Конвейер create_image:
-  1. download_image(url)          — скачать фото статьи
-  2. get_unsplash_image(title)    — если нет фото → Unsplash (3 попытки + fallback)
-  3. prepare_background(img)      — cover-resize до 1080×1920
-  4. add_overlay(img)             — градиентный overlay 80→220 alpha
-  5. draw_badge(draw, type)       — бейдж типа новости (верх-лево)
-  6. отрисовка заголовка          — авто-подбор шрифта 72→48px, макс. 4 строки
-  7. отрисовка описания           — 38px, макс. 3 строки
+  1. download_image(url)       — скачать оригинальное фото статьи
+  2. get_fallback_image(title) — если нет фото → Picsum Photos (seed по заголовку)
+  3. prepare_background(img)   — FIT-resize + размытый фон
+  4. add_overlay(img)          — градиентный overlay 80→220 alpha
+  5. draw_badge(draw, type)    — бейдж типа новости (верх-лево)
+  6. отрисовка заголовка       — авто-подбор шрифта 72→48px, макс. 4 строки
+  7. отрисовка описания        — 38px, макс. 3 строки
 """
 
+import hashlib
 import io
 import os
 import sys
 import random
-import urllib.parse
 
 import requests
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -63,7 +63,7 @@ _STOP_WORDS = {
     "mot", "cac", "nhung", "sau", "khi", "da",
 }
 
-_UNSPLASH_TIMEOUT = 15
+_PICSUM_TIMEOUT = 15
 
 # Пары градиента для фона-заглушки
 _GRADIENT_PAIRS = [
@@ -105,14 +105,17 @@ def create_image(news_item: dict, output_path: str) -> bool:
         desc      = (news_item.get("description") or "").strip()
         news_type = (news_item.get("type")        or "world").strip()
 
-        # 1. Скачать фото статьи
+        # 1. Скачать оригинальное фото статьи
         img = download_image(image_url) if image_url else None
+        if img:
+            print(f"    [OK] Оригинальное фото загружено")
 
-        # 2. Fallback → Unsplash → градиент (внутри prepare_background)
+        # 2. Fallback → Picsum Photos (seed детерминирован по заголовку)
         if img is None:
-            img = get_unsplash_image(title, news_type)
+            print(f"    [>] Нет фото, берём Picsum...")
+            img = get_fallback_image(title, news_type)
 
-        # 3. Cover-resize 1080×1920
+        # 3. FIT-resize + размытый фон (или градиент если img=None)
         img = prepare_background(img, W, H)
 
         # 4. Градиентный overlay
@@ -168,61 +171,58 @@ def create_image(news_item: dict, output_path: str) -> bool:
 
 def download_image(url: str) -> Image.Image | None:
     """Скачивает изображение по URL. Возвращает None при любой ошибке."""
-    if not url:
+    if not url or len(url) < 10:
         return None
     try:
         resp = requests.get(
-            url, headers=HEADERS, timeout=REQUEST_TIMEOUT, stream=True
+            url,
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=REQUEST_TIMEOUT,
         )
-        resp.raise_for_status()
-        content_type = resp.headers.get("Content-Type", "")
-        if "image" in content_type or _has_image_ext(url):
+        if resp.status_code == 200 and len(resp.content) > 5_000:
             img = Image.open(io.BytesIO(resp.content)).convert("RGB")
-            if img.width > 100 and img.height > 100:
+            if img.width > 200 and img.height > 200:
                 return img
     except Exception as e:
-        print(f"    [ImageGen] Не загружена ({url[:55]}…): {e}")
+        print(f"    [ImageGen] Не загружена ({url[:55]}): {e}")
     return None
 
 
-def get_unsplash_image(title: str, news_type: str = "world") -> Image.Image | None:
+def get_fallback_image(title: str, news_type: str = "world") -> Image.Image | None:
     """
-    Ищет фото на Unsplash по заголовку новости.
-    Пробует 3 запроса по убыванию специфичности:
-      1. Первые 3 слова заголовка
-      2. Первое слово заголовка
-      3. Общий запрос по типу новости (vietnam city / world news newspaper)
+    Загружает случайное фото с Picsum Photos (picsum.photos) — бесплатно, без ключа.
+
+    seed вычисляется из MD5 заголовка → одна новость всегда получает одно фото.
+    Пробует 3 URL по убыванию надёжности:
+      1. picsum.photos/seed/{seed}/1080/1920  — детерминированное фото по seed
+      2. picsum.photos/1080/1920?random={seed}  — случайное с тем же seed
+      3. picsum.photos/1080/1920?random={seed+1} — запасной вариант
 
     Возвращает None только если все 3 попытки провалились (→ градиентный фон).
     """
-    words = [w for w in title.split()[:5] if len(w) > 2]
+    seed = int(hashlib.md5(title.encode("utf-8", errors="replace")).hexdigest()[:8], 16) % 1000
 
-    query1 = urllib.parse.quote(" ".join(words[:3]) if words else "news")
-    query2 = urllib.parse.quote(words[0] if words else "news")
-    query3 = "vietnam+city" if news_type == "vietnam" else "world+news+newspaper"
+    urls = [
+        f"https://picsum.photos/seed/{seed}/1080/1920",
+        f"https://picsum.photos/1080/1920?random={seed}",
+        f"https://picsum.photos/1080/1920?random={seed + 1}",
+    ]
 
-    _ua = (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/122.0.0.0 Safari/537.36"
-    )
-
-    for query in [query1, query2, query3]:
-        url = f"https://source.unsplash.com/1080x1920/?{query}"
+    for url in urls:
         try:
             resp = requests.get(
                 url,
-                headers={"User-Agent": _ua},
-                timeout=_UNSPLASH_TIMEOUT,
+                headers={"User-Agent": "Mozilla/5.0"},
+                timeout=_PICSUM_TIMEOUT,
                 allow_redirects=True,
             )
             if resp.status_code == 200 and len(resp.content) > 5_000:
                 img = Image.open(io.BytesIO(resp.content)).convert("RGB")
                 if img.width > 200 and img.height > 200:
-                    print(f"    [Unsplash] OK: {query[:50]}")
+                    print(f"    [Picsum] OK (seed={seed})")
                     return img
         except Exception as e:
-            print(f"    [Unsplash] Ошибка ({query[:40]}): {e}")
+            print(f"    [Picsum] Ошибка ({url[:55]}): {e}")
             continue
 
     return None
