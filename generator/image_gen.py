@@ -1,14 +1,15 @@
 """
 Генератор изображений для новостей — формат TikTok/Reels (1080×1920, 9:16).
-Два стиля: "world" (🌍 TIN THẾ GIỚI) и "vietnam" (🇻🇳 TIN VIỆT NAM).
-Фото на весь фон, тёмный overlay, заголовок + описание в нижней трети.
+Два стиля: "world" (TIN THE GIOI) и "vietnam" (TIN VIET NAM).
 
-Порядок получения фона:
-  1. image_url из новости
-  2. Unsplash Source API по первым словам заголовка
-  3. Тёмный градиент
-
-Логотипы НЕ обрезаются — нижняя часть накрыта плотным overlay.
+Конвейер create_image:
+  1. download_image(url)          — скачать фото статьи
+  2. get_unsplash_image(title)    — если нет фото → Unsplash (3 попытки + fallback)
+  3. prepare_background(img)      — cover-resize до 1080×1920
+  4. add_overlay(img)             — градиентный overlay 80→220 alpha
+  5. draw_badge(draw, type)       — бейдж типа новости (верх-лево)
+  6. отрисовка заголовка          — авто-подбор шрифта 72→48px, макс. 4 строки
+  7. отрисовка описания           — 38px, макс. 3 строки
 """
 
 import io
@@ -26,70 +27,62 @@ from config import (
     FONT_PATH, HEADERS, REQUEST_TIMEOUT,
 )
 
-# ── Константы дизайна ────────────────────────────────────────────────────────
+# ── Константы ────────────────────────────────────────────────────────────────
 
-PADDING = 80
+W, H = IMAGE_WIDTH, IMAGE_HEIGHT          # 1080 × 1920
 
-# Overlay: градиент 0.35 сверху → 0.85 снизу (средний ≈ 0.6)
-OVERLAY_ALPHA_TOP    = int(0.35 * 255)
-OVERLAY_ALPHA_BOTTOM = int(0.85 * 255)
-
-MAX_TITLE_CHARS = 150
-MAX_DESC_CHARS  = 250
-
-# Автоподбор размера шрифта заголовка
+# Шрифты для create_image
 TITLE_FONT_START = 72
 TITLE_FONT_MIN   = 48
 TITLE_FONT_STEP  = 4
 TITLE_MAX_LINES  = 4
+TITLE_LINE_H     = 85                     # межстрочный интервал заголовка (px)
 
-# Описание — фиксированный шрифт, обрезается до 3 строк
-DESC_FONT_SIZE = 36
-DESC_MAX_LINES = 3
+DESC_FONT_SIZE   = 38
+DESC_LINE_H      = 48
+DESC_MAX_LINES   = 3
 
-TITLE_LINE_SPACING = 14
-DESC_LINE_SPACING  = 8
-BLOCK_GAP          = 28
+# Горизонтальный отступ текста
+TEXT_PAD = 80
 
-# Нижние границы размещения текста
-TITLE_MAX_BOTTOM = IMAGE_HEIGHT - 400   # 1520
-DESC_MAX_BOTTOM  = IMAGE_HEIGHT - 100   # 1820
-TEXT_ZONE_TOP    = 1300
-
-# Бейдж (верхний левый угол)
-BADGE_X       = 40
-BADGE_Y       = 60
-BADGE_PAD_X   = 22
-BADGE_PAD_Y   = 14
-BADGE_RADIUS  = 18
+# Бейдж
+BADGE_X      = 60
+BADGE_Y      = 80
+BADGE_PAD_X  = 20
+BADGE_PAD_Y  = 12
+BADGE_RADIUS = 12
 BADGE_FONT_SZ = 36
 
-SHADOW_OFFSET = 4
-SHADOW_COLOR  = (0, 0, 0, 230)
-WHITE         = (255, 255, 255, 255)
-DESC_COLOR    = (220, 220, 220, 255)
+# Стоп-слова для Unsplash-запроса (русские, вьетнамские, английские)
+_STOP_WORDS = {
+    "the", "a", "an", "is", "are", "was", "were",
+    "in", "on", "at", "to", "for", "of", "and", "or", "but",
+    "with", "that", "this", "it", "he", "she", "they",
+    # вьетнамские
+    "voi", "cua", "va", "la", "co", "duoc", "cho", "trong",
+    "mot", "cac", "nhung", "sau", "khi", "da",
+}
+
+_UNSPLASH_TIMEOUT = 15
 
 # Пары градиента для фона-заглушки
 _GRADIENT_PAIRS = [
-    ((20, 20, 40),  (0, 0, 0)),
-    ((40, 10, 10),  (0, 0, 0)),
-    ((10, 30, 20),  (0, 0, 0)),
-    ((30, 10, 40),  (0, 0, 0)),
-    ((10, 30, 50),  (0, 0, 0)),
-    ((50, 25, 10),  (0, 0, 0)),
+    ((15, 20, 40), (5,  5,  15)),
+    ((40, 10, 10), (10, 5,  5)),
+    ((10, 30, 15), (5,  10, 5)),
+    ((30, 15, 40), (10, 5,  15)),
+    ((40, 30, 10), (15, 10, 5)),
 ]
-
-_UNSPLASH_TIMEOUT = 12
 
 # Кэш шрифтов
 _font_cache: dict = {}
 
-# Названия месяцев на вьетнамском
+# Вьетнамские названия месяцев
 _VI_MONTHS = {
-    1:  "tháng 1",  2:  "tháng 2",  3:  "tháng 3",
-    4:  "tháng 4",  5:  "tháng 5",  6:  "tháng 6",
-    7:  "tháng 7",  8:  "tháng 8",  9:  "tháng 9",
-    10: "tháng 10", 11: "tháng 11", 12: "tháng 12",
+    1:  "thang 1",  2:  "thang 2",  3:  "thang 3",
+    4:  "thang 4",  5:  "thang 5",  6:  "thang 6",
+    7:  "thang 7",  8:  "thang 8",  9:  "thang 9",
+    10: "thang 10", 11: "thang 11", 12: "thang 12",
 }
 
 
@@ -107,31 +100,63 @@ def create_image(news_item: dict, output_path: str) -> bool:
         True — успех, False — ошибка
     """
     try:
-        title       = (news_item.get("title")       or "").strip()
-        image_url   = (news_item.get("image_url")   or "").strip()
-        description = (news_item.get("description") or "").strip()
-        news_type   = (news_item.get("type")        or "world").strip()
+        title     = (news_item.get("title")       or "").strip()
+        image_url = (news_item.get("image_url")   or "").strip()
+        desc      = (news_item.get("description") or "").strip()
+        news_type = (news_item.get("type")        or "world").strip()
 
-        if len(title) > MAX_TITLE_CHARS:
-            title = title[:MAX_TITLE_CHARS - 1].rstrip() + "…"
-        if len(description) > MAX_DESC_CHARS:
-            description = description[:MAX_DESC_CHARS - 1].rstrip() + "…"
+        # 1. Скачать фото статьи
+        img = download_image(image_url) if image_url else None
 
-        # 1. Загружаем фоновое изображение
-        base = _load_image(image_url, title)
+        # 2. Fallback → Unsplash → градиент (внутри prepare_background)
+        if img is None:
+            img = get_unsplash_image(title, news_type)
 
-        # 2. Cover-resize до целевого размера (без обрезки логотипа — overlay покроет)
-        base = _resize_image_cover(base, IMAGE_WIDTH, IMAGE_HEIGHT)
+        # 3. Cover-resize 1080×1920
+        img = prepare_background(img, W, H)
 
-        # 3. Градиентный тёмный overlay
-        base = _apply_gradient_overlay(base)
+        # 4. Градиентный overlay
+        img = add_overlay(img)
 
-        # 4. Рисуем бейдж типа + текст
-        base = _draw_all_text(base, title, description, news_type)
+        # 5. Рисуем поверх overlay
+        draw = ImageDraw.Draw(img)
 
-        # 5. Сохраняем
+        # 6. Бейдж типа новости
+        font_badge = _get_font(BADGE_FONT_SZ, bold=True)
+        draw_badge(draw, news_type, font_badge)
+
+        # 7. Заголовок (нижняя треть, авто-подбор шрифта)
+        font_title, title_lines = _fit_title_font(draw, title, W - TEXT_PAD * 2)
+        title_lines = title_lines[:TITLE_MAX_LINES]
+        total_title_h = len(title_lines) * TITLE_LINE_H
+        title_y = H - 350 - total_title_h
+
+        for line in title_lines:
+            # Тень
+            draw.text((TEXT_PAD + 3, title_y + 3), line,
+                      font=font_title, fill=(0, 0, 0))
+            # Основной текст
+            draw.text((TEXT_PAD, title_y), line,
+                      font=font_title, fill=(255, 255, 255))
+            title_y += TITLE_LINE_H
+
+        # 8. Описание
+        if desc:
+            font_desc = _get_font(DESC_FONT_SIZE, bold=False)
+            desc_lines = wrap_text(desc, font_desc, W - TEXT_PAD * 2, draw)
+            desc_lines = desc_lines[:DESC_MAX_LINES]
+            desc_y = title_y + 20
+
+            for line in desc_lines:
+                if desc_y + DESC_LINE_H > H - 60:
+                    break
+                draw.text((TEXT_PAD, desc_y), line,
+                          font=font_desc, fill=(210, 210, 210))
+                desc_y += DESC_LINE_H
+
+        # 9. Сохранить
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        base.save(output_path, "PNG", optimize=True)
+        img.save(output_path, "PNG", optimize=True)
         return True
 
     except Exception as e:
@@ -139,28 +164,12 @@ def create_image(news_item: dict, output_path: str) -> bool:
         return False
 
 
-# ── Загрузка / генерация фона ─────────────────────────────────────────────────
+# ── Загрузка изображений ──────────────────────────────────────────────────────
 
-def _load_image(image_url: str, title: str) -> Image.Image:
-    """Цепочка fallback: URL → Unsplash → градиент."""
-    if image_url:
-        img = _download_image(image_url)
-        if img:
-            return img
-        print(f"    [ImageGen] Прямой URL не сработал, пробую Unsplash...")
-
-    if title:
-        img = _unsplash_image(title)
-        if img:
-            print(f"    [ImageGen] Картинка получена с Unsplash.")
-            return img
-        print(f"    [ImageGen] Unsplash не ответил, генерирую градиент...")
-
-    return _generate_gradient_bg()
-
-
-def _download_image(url: str) -> Image.Image | None:
+def download_image(url: str) -> Image.Image | None:
     """Скачивает изображение по URL. Возвращает None при любой ошибке."""
+    if not url:
+        return None
     try:
         resp = requests.get(
             url, headers=HEADERS, timeout=REQUEST_TIMEOUT, stream=True
@@ -168,67 +177,88 @@ def _download_image(url: str) -> Image.Image | None:
         resp.raise_for_status()
         content_type = resp.headers.get("Content-Type", "")
         if "image" in content_type or _has_image_ext(url):
-            return Image.open(io.BytesIO(resp.content)).convert("RGB")
+            img = Image.open(io.BytesIO(resp.content)).convert("RGB")
+            if img.width > 100 and img.height > 100:
+                return img
     except Exception as e:
         print(f"    [ImageGen] Не загружена ({url[:55]}…): {e}")
     return None
 
 
-def _unsplash_image(title: str) -> Image.Image | None:
-    """Запрашивает случайное фото с Unsplash по первым 3 словам заголовка."""
-    try:
-        words = [w.strip(".,!?:;\"'()") for w in title.split()[:3] if len(w) > 2]
-        if not words:
-            return None
+def get_unsplash_image(title: str, news_type: str = "world") -> Image.Image | None:
+    """
+    Ищет фото на Unsplash по ключевым словам заголовка.
+    Фильтрует стоп-слова, добавляет контекст по типу новости.
+    Пробует 3 варианта URL, проверяет размер ответа (>10 KB).
 
-        query = urllib.parse.quote(" ".join(words))
-        url   = f"https://source.unsplash.com/{IMAGE_WIDTH}x{IMAGE_HEIGHT}/?{query}"
+    Возвращает None если все попытки неудачны (→ prepare_background создаст градиент).
+    """
+    words = [
+        w.strip(".,!?:;\"'()-«»")
+        for w in title.lower().split()
+        if w.strip(".,!?:;\"'()-«»") not in _STOP_WORDS
+        and len(w.strip(".,!?:;\"'()-«»")) > 3
+    ]
 
-        resp = requests.get(
-            url,
-            headers={
-                "User-Agent": (
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/122.0.0.0 Safari/537.36"
-                )
-            },
-            timeout=_UNSPLASH_TIMEOUT,
-            allow_redirects=True,
-        )
+    primary_query = " ".join(words[:3]) if words else "news"
+    if news_type == "vietnam":
+        primary_query += " vietnam"
 
-        if resp.status_code == 200 and "image" in resp.headers.get("Content-Type", ""):
-            return Image.open(io.BytesIO(resp.content)).convert("RGB")
+    fallback_word  = words[0] if words else "news"
 
-    except Exception as e:
-        print(f"    [ImageGen] Unsplash ошибка: {e}")
+    urls = [
+        f"https://source.unsplash.com/1080x1920/?{urllib.parse.quote(primary_query)}",
+        f"https://source.unsplash.com/1080x1920/?{urllib.parse.quote(fallback_word)}",
+        "https://source.unsplash.com/1080x1920/?news,world",
+    ]
+
+    for url in urls:
+        try:
+            resp = requests.get(
+                url,
+                headers={
+                    "User-Agent": (
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) "
+                        "Chrome/122.0.0.0 Safari/537.36"
+                    )
+                },
+                timeout=_UNSPLASH_TIMEOUT,
+                allow_redirects=True,
+            )
+            if (
+                resp.status_code == 200
+                and len(resp.content) > 10_000
+                and "image" in resp.headers.get("Content-Type", "")
+            ):
+                img = Image.open(io.BytesIO(resp.content)).convert("RGB")
+                if img.width > 100 and img.height > 100:
+                    return img
+        except Exception as e:
+            print(f"    [Unsplash] Ошибка ({url[:60]}): {e}")
+            continue
 
     return None
 
 
-def _generate_gradient_bg() -> Image.Image:
-    """Генерирует тёмный двухцветный градиент сверху вниз."""
-    top_color, bottom_color = random.choice(_GRADIENT_PAIRS)
-    img  = Image.new("RGB", (IMAGE_WIDTH, IMAGE_HEIGHT))
-    draw = ImageDraw.Draw(img)
+# ── Подготовка фона ───────────────────────────────────────────────────────────
 
-    for y in range(IMAGE_HEIGHT):
-        t = y / (IMAGE_HEIGHT - 1)
-        r = int(top_color[0] + (bottom_color[0] - top_color[0]) * t)
-        g = int(top_color[1] + (bottom_color[1] - top_color[1]) * t)
-        b = int(top_color[2] + (bottom_color[2] - top_color[2]) * t)
-        draw.line([(0, y), (IMAGE_WIDTH, y)], fill=(r, g, b))
-
-    return img
-
-
-# ── Обработка изображения ─────────────────────────────────────────────────────
-
-def _resize_image_cover(img: Image.Image, target_w: int, target_h: int) -> Image.Image:
+def prepare_background(
+    img: Image.Image | None,
+    target_w: int = 1080,
+    target_h: int = 1920,
+) -> Image.Image:
     """
-    Cover-масштабирование: вписывает картинку в размер сохраняя пропорции,
-    центрирует и обрезает до нужных размеров.
+    Если img=None — генерирует тёмный градиентный фон.
+    Иначе — cover-resize: масштабирует картинку чтобы заполнить весь холст,
+    обрезает лишнее по центру. Пропорции сохраняются.
     """
+    if img is None:
+        return create_gradient_bg(target_w, target_h)
+
+    if img.mode != "RGB":
+        img = img.convert("RGB")
+
     img_ratio    = img.width  / img.height
     target_ratio = target_w   / target_h
 
@@ -237,7 +267,7 @@ def _resize_image_cover(img: Image.Image, target_w: int, target_h: int) -> Image
         new_h = target_h
         new_w = int(new_h * img_ratio)
     else:
-        # Картинка выше — подгоняем по ширине
+        # Картинка уже — подгоняем по ширине
         new_w = target_w
         new_h = int(new_w / img_ratio)
 
@@ -247,54 +277,71 @@ def _resize_image_cover(img: Image.Image, target_w: int, target_h: int) -> Image
     return img.crop((left, top, left + target_w, top + target_h))
 
 
-def _apply_gradient_overlay(img: Image.Image) -> Image.Image:
+def create_gradient_bg(w: int, h: int) -> Image.Image:
+    """Генерирует тёмный двухцветный градиент сверху вниз."""
+    top_color, bottom_color = random.choice(_GRADIENT_PAIRS)
+    img  = Image.new("RGB", (w, h))
+    draw = ImageDraw.Draw(img)
+
+    for y in range(h):
+        ratio = y / h
+        r = int(top_color[0] + (bottom_color[0] - top_color[0]) * ratio)
+        g = int(top_color[1] + (bottom_color[1] - top_color[1]) * ratio)
+        b = int(top_color[2] + (bottom_color[2] - top_color[2]) * ratio)
+        draw.line([(0, y), (w, y)], fill=(r, g, b))
+
+    return img
+
+
+def add_overlay(img: Image.Image) -> Image.Image:
     """
     Накладывает градиентный чёрный overlay:
-    ~35% сверху → ~85% снизу (средний ≈ 0.6).
-    Нижняя треть достаточно тёмная для читаемого текста.
+    - Верх: alpha=80  (~31% непрозрачности) — фото просматривается
+    - Низ:  alpha=220 (~86% непрозрачности) — текст читаем
     """
-    base    = img.convert("RGBA")
-    overlay = Image.new("RGBA", base.size, (0, 0, 0, 0))
+    overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
     draw    = ImageDraw.Draw(overlay)
+    _w, _h  = img.size
 
-    h = base.height
-    for y in range(h):
-        t     = y / (h - 1)
-        alpha = int(OVERLAY_ALPHA_TOP + (OVERLAY_ALPHA_BOTTOM - OVERLAY_ALPHA_TOP) * t)
-        draw.line([(0, y), (base.width, y)], fill=(0, 0, 0, alpha))
+    for y in range(_h):
+        ratio = y / _h
+        alpha = int(80 + 140 * ratio)
+        draw.line([(0, y), (_w, y)], fill=(0, 0, 0, alpha))
 
+    base = img.convert("RGBA")
     return Image.alpha_composite(base, overlay).convert("RGB")
 
 
 # ── Бейдж типа новости ────────────────────────────────────────────────────────
 
-def _draw_badge(draw: ImageDraw.Draw, news_type: str, font: ImageFont.FreeTypeFont) -> None:
+def draw_badge(
+    draw: ImageDraw.Draw,
+    news_type: str,
+    font: ImageFont.FreeTypeFont,
+) -> None:
     """
-    Рисует бейдж типа новости в верхнем левом углу.
-    world   → красный фон, белый текст  "🌍 TIN THẾ GIỚI"
-    vietnam → жёлтый фон, красный текст "🇻🇳 TIN VIỆT NAM"
+    Рисует бейдж типа новости в верхнем левом углу:
+      world   → красный фон (#DC1E1E), белый текст  "TIN THE GIOI"
+      vietnam → жёлтый фон (#FFC800), тёмно-красный "TIN VIET NAM"
     """
     if news_type == "vietnam":
-        bg_color   = (255, 200, 0)
-        text_color = (200, 0, 0)
-        badge_text = "TIN VIET NAM"     # без флага — надёжнее с системными шрифтами
+        badge_color = (255, 200, 0)
+        text_color  = (180, 0, 0)
+        badge_text  = "TIN VIET NAM"
     else:
-        bg_color   = (220, 30, 30)
-        text_color = (255, 255, 255)
-        badge_text = "TIN THE GIOI"
+        badge_color = (220, 30, 30)
+        text_color  = (255, 255, 255)
+        badge_text  = "TIN THE GIOI"
 
     bbox   = draw.textbbox((0, 0), badge_text, font=font)
-    text_w = bbox[2] - bbox[0]
-    text_h = bbox[3] - bbox[1]
+    bw     = bbox[2] - bbox[0] + BADGE_PAD_X * 2
+    bh     = bbox[3] - bbox[1] + BADGE_PAD_Y * 2
 
-    rect = [
-        BADGE_X,
-        BADGE_Y,
-        BADGE_X + text_w + BADGE_PAD_X * 2,
-        BADGE_Y + text_h + BADGE_PAD_Y * 2,
-    ]
-
-    draw.rounded_rectangle(rect, radius=BADGE_RADIUS, fill=bg_color)
+    draw.rounded_rectangle(
+        [BADGE_X, BADGE_Y, BADGE_X + bw, BADGE_Y + bh],
+        radius=BADGE_RADIUS,
+        fill=badge_color,
+    )
     draw.text(
         (BADGE_X + BADGE_PAD_X, BADGE_Y + BADGE_PAD_Y),
         badge_text,
@@ -303,165 +350,14 @@ def _draw_badge(draw: ImageDraw.Draw, news_type: str, font: ImageFont.FreeTypeFo
     )
 
 
-# ── Отрисовка текста ──────────────────────────────────────────────────────────
+# ── Word-wrap ─────────────────────────────────────────────────────────────────
 
-def _fit_title(
-    draw: ImageDraw.Draw,
-    text: str,
-    max_width: int,
-) -> tuple[ImageFont.FreeTypeFont, list[str]]:
-    """
-    Подбирает размер шрифта заголовка (TITLE_FONT_START → TITLE_FONT_MIN, шаг TITLE_FONT_STEP)
-    так, чтобы текст влез в TITLE_MAX_LINES строк.
-    """
-    size = TITLE_FONT_START
-    while size >= TITLE_FONT_MIN:
-        font  = _get_font(size, bold=True)
-        lines = _wrap(text, font, max_width, draw)
-        if len(lines) <= TITLE_MAX_LINES:
-            return font, lines
-        size -= TITLE_FONT_STEP
-
-    font  = _get_font(TITLE_FONT_MIN, bold=True)
-    lines = _wrap(text, font, max_width, draw)
-    return font, lines[:TITLE_MAX_LINES]
-
-
-def _fit_desc(
-    draw: ImageDraw.Draw,
+def wrap_text(
     text: str,
     font: ImageFont.FreeTypeFont,
     max_width: int,
+    draw: ImageDraw.Draw,
 ) -> list[str]:
-    """
-    Переносит описание по словам. Если строк больше DESC_MAX_LINES —
-    обрезает, добавляя «…» к последней строке.
-    """
-    if not text:
-        return []
-
-    lines = _wrap(text, font, max_width, draw)
-
-    if len(lines) <= DESC_MAX_LINES:
-        return lines
-
-    lines = lines[:DESC_MAX_LINES]
-    last  = lines[-1]
-    while last:
-        candidate = last.rstrip() + "…"
-        w = draw.textbbox((0, 0), candidate, font=font)[2]
-        if w <= max_width:
-            lines[-1] = candidate
-            break
-        last = last[:-1]
-
-    return lines
-
-
-def _draw_all_text(
-    img: Image.Image,
-    title: str,
-    description: str,
-    news_type: str = "world",
-) -> Image.Image:
-    """
-    Рисует на изображении:
-      1. Бейдж типа новости (верхний левый угол)
-      2. Заголовок (нижняя треть, автоподбор шрифта 72→48px, макс. 4 строки)
-      3. Описание (36px, макс. 3 строки с «…»)
-    """
-    img_rgba   = img.convert("RGBA")
-    text_layer = Image.new("RGBA", img_rgba.size, (0, 0, 0, 0))
-    draw       = ImageDraw.Draw(text_layer)
-
-    W, H       = img.size
-    max_text_w = W - PADDING * 2   # 920px
-
-    # ── Бейдж ─────────────────────────────────────────────────────────────────
-    font_badge = _get_font(BADGE_FONT_SZ, bold=True)
-    _draw_badge(draw, news_type, font_badge)
-
-    # ── Подбор шрифта и строк для заголовка ──────────────────────────────────
-    font_title, title_lines = _fit_title(draw, title, max_text_w)
-    title_h = _block_height(title_lines, font_title, draw, TITLE_LINE_SPACING)
-
-    # ── Описание ─────────────────────────────────────────────────────────────
-    font_desc  = _get_font(DESC_FONT_SIZE, bold=False)
-    desc_lines = _fit_desc(draw, description, font_desc, max_text_w)
-    desc_h     = _block_height(desc_lines, font_desc, draw, DESC_LINE_SPACING)
-
-    gap           = BLOCK_GAP if desc_lines else 0
-    total_block_h = title_h + gap + desc_h
-
-    # Позиционирование: прижать к низу, соблюдая ограничения
-    max_y_for_title = TITLE_MAX_BOTTOM - title_h
-    max_y_for_desc  = DESC_MAX_BOTTOM  - total_block_h
-    block_y = min(max_y_for_title, max_y_for_desc)
-    block_y = max(block_y, TEXT_ZONE_TOP)
-
-    # ── Рисуем заголовок ─────────────────────────────────────────────────────
-    _draw_text_block(
-        draw, title_lines, font_title,
-        x=PADDING, y=block_y,
-        max_w=max_text_w,
-        color=WHITE,
-        shadow_color=SHADOW_COLOR,
-        shadow_offset=SHADOW_OFFSET,
-        line_spacing=TITLE_LINE_SPACING,
-        align="left",
-        canvas_w=W,
-    )
-
-    # ── Рисуем описание ──────────────────────────────────────────────────────
-    if desc_lines:
-        _draw_text_block(
-            draw, desc_lines, font_desc,
-            x=PADDING, y=block_y + title_h + BLOCK_GAP,
-            max_w=max_text_w,
-            color=DESC_COLOR,
-            shadow_color=SHADOW_COLOR,
-            shadow_offset=3,
-            line_spacing=DESC_LINE_SPACING,
-            align="left",
-            canvas_w=W,
-        )
-
-    return Image.alpha_composite(img_rgba, text_layer).convert("RGB")
-
-
-def _draw_text_block(
-    draw: ImageDraw.Draw,
-    lines: list[str],
-    font: ImageFont.FreeTypeFont,
-    x: int, y: int,
-    max_w: int,
-    color: tuple,
-    shadow_color: tuple,
-    shadow_offset: int,
-    line_spacing: int,
-    align: str,
-    canvas_w: int,
-) -> None:
-    """Рисует блок строк с тенью. align='left' | 'center'."""
-    lh    = _line_h(font, draw)
-    cur_y = y
-
-    for line in lines:
-        bbox   = draw.textbbox((0, 0), line, font=font)
-        line_w = bbox[2] - bbox[0]
-        cur_x  = x + (max_w - line_w) // 2 if align == "center" else x
-
-        draw.text((cur_x + shadow_offset, cur_y + shadow_offset),
-                  line, font=font, fill=shadow_color)
-        draw.text((cur_x, cur_y), line, font=font, fill=color)
-
-        cur_y += lh + line_spacing
-
-
-# ── Вспомогательные функции ───────────────────────────────────────────────────
-
-def _wrap(text: str, font: ImageFont.FreeTypeFont,
-          max_width: int, draw: ImageDraw.Draw) -> list[str]:
     """Word-wrap по пикселям."""
     if not text:
         return []
@@ -471,8 +367,7 @@ def _wrap(text: str, font: ImageFont.FreeTypeFont,
 
     for word in words:
         candidate = (current + " " + word).strip()
-        w = draw.textbbox((0, 0), candidate, font=font)[2]
-        if w <= max_width:
+        if draw.textbbox((0, 0), candidate, font=font)[2] <= max_width:
             current = candidate
         else:
             if current:
@@ -484,18 +379,7 @@ def _wrap(text: str, font: ImageFont.FreeTypeFont,
     return lines
 
 
-def _line_h(font: ImageFont.FreeTypeFont, draw: ImageDraw.Draw) -> int:
-    bb = draw.textbbox((0, 0), "Аgy", font=font)
-    return bb[3] - bb[1]
-
-
-def _block_height(lines: list[str], font: ImageFont.FreeTypeFont,
-                  draw: ImageDraw.Draw, spacing: int) -> int:
-    if not lines:
-        return 0
-    lh = _line_h(font, draw)
-    return lh * len(lines) + spacing * (len(lines) - 1)
-
+# ── Шрифты ───────────────────────────────────────────────────────────────────
 
 def _get_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
     """Кастомный → системный Windows → Linux/Mac → default."""
@@ -546,20 +430,82 @@ def _get_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
     return font
 
 
+def _fit_title_font(
+    draw: ImageDraw.Draw,
+    text: str,
+    max_width: int,
+) -> tuple[ImageFont.FreeTypeFont, list[str]]:
+    """
+    Подбирает размер шрифта заголовка (TITLE_FONT_START→TITLE_FONT_MIN, шаг TITLE_FONT_STEP)
+    так, чтобы текст влез в TITLE_MAX_LINES строк.
+    """
+    size = TITLE_FONT_START
+    while size >= TITLE_FONT_MIN:
+        font  = _get_font(size, bold=True)
+        lines = wrap_text(text, font, max_width, draw)
+        if len(lines) <= TITLE_MAX_LINES:
+            return font, lines
+        size -= TITLE_FONT_STEP
+
+    # Минимальный шрифт, жёстко обрезаем
+    font  = _get_font(TITLE_FONT_MIN, bold=True)
+    lines = wrap_text(text, font, max_width, draw)
+    return font, lines[:TITLE_MAX_LINES]
+
+
 def _has_image_ext(url: str) -> bool:
     base = url.lower().split("?")[0]
     return any(base.endswith(e) for e in (".jpg", ".jpeg", ".png", ".webp", ".gif"))
 
 
-def _dark_gradient(draw: ImageDraw.Draw, w: int, h: int,
-                   top: tuple, bottom: tuple) -> None:
-    """Рисует вертикальный градиент на уже созданном draw-объекте."""
+# ── Вспомогательный градиент для баннеров ────────────────────────────────────
+
+def _dark_gradient(
+    draw: ImageDraw.Draw, w: int, h: int,
+    top: tuple, bottom: tuple,
+) -> None:
+    """Рисует вертикальный градиент на draw-объекте."""
     for y in range(h):
         t = y / (h - 1)
         r = int(top[0] + (bottom[0] - top[0]) * t)
         g = int(top[1] + (bottom[1] - top[1]) * t)
         b = int(top[2] + (bottom[2] - top[2]) * t)
         draw.line([(0, y), (w, y)], fill=(r, g, b))
+
+
+# ── Вспомогательные для баннеров ─────────────────────────────────────────────
+
+def _line_h(font: ImageFont.FreeTypeFont, draw: ImageDraw.Draw) -> int:
+    bb = draw.textbbox((0, 0), "Аgy", font=font)
+    return bb[3] - bb[1]
+
+
+def _block_height(
+    lines: list[str],
+    font: ImageFont.FreeTypeFont,
+    draw: ImageDraw.Draw,
+    spacing: int,
+) -> int:
+    if not lines:
+        return 0
+    lh = _line_h(font, draw)
+    return lh * len(lines) + spacing * (len(lines) - 1)
+
+
+def _draw_text_centered(
+    draw: ImageDraw.Draw,
+    text: str,
+    font: ImageFont.FreeTypeFont,
+    y: int,
+    canvas_w: int,
+    color: tuple,
+    shadow: bool = True,
+) -> None:
+    """Рисует одну строку по центру с опциональной тенью."""
+    if shadow:
+        draw.text((canvas_w // 2 + 3, y + 3), text,
+                  font=font, anchor="mm", fill=(0, 0, 0))
+    draw.text((canvas_w // 2, y), text, font=font, anchor="mm", fill=color)
 
 
 # ── Вступительный баннер ──────────────────────────────────────────────────────
@@ -569,32 +515,27 @@ def create_intro_banner(date_str: str, news_count: int, output_path: str) -> str
     Создаёт вступительный баннер дайджеста (1080×1920) на вьетнамском языке.
 
     Args:
-        date_str:   дата в читаемом виде, напр. "ngày 5 tháng 4 năm 2026"
-        news_count: количество новостей в дайджесте
-        output_path: куда сохранить PNG
-
-    Returns:
-        output_path
+        date_str:   дата, напр. "ngay 5 thang 4 nam 2026"
+        news_count: количество новостей
+        output_path: путь для сохранения PNG
     """
-    W, H = 1080, 1920
+    bw, bh = 1080, 1920
 
-    img  = Image.new("RGB", (W, H), (0, 0, 0))
+    img  = Image.new("RGB", (bw, bh), (0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Тёмно-синий → чёрный градиент
-    _dark_gradient(draw, W, H, (8, 12, 40), (0, 0, 0))
+    _dark_gradient(draw, bw, bh, (8, 12, 40), (0, 0, 0))
 
     # Декоративные линии по краям
     for x_off in (30, 50):
-        draw.line([(x_off, 120), (x_off, H - 120)], fill=(220, 30, 30), width=2)
-        draw.line([(W - x_off, 120), (W - x_off, H - 120)], fill=(220, 30, 30), width=2)
+        draw.line([(x_off, 120), (x_off, bh - 120)],     fill=(220, 30, 30), width=2)
+        draw.line([(bw - x_off, 120), (bw - x_off, bh - 120)], fill=(220, 30, 30), width=2)
 
-    # Декоративные точки по краям
-    for y_dot in range(200, H - 200, 120):
-        draw.ellipse([18, y_dot - 5, 28, y_dot + 5],       fill=(220, 30, 30))
-        draw.ellipse([W - 28, y_dot - 5, W - 18, y_dot + 5], fill=(220, 30, 30))
+    # Декоративные точки по краям (каждые 120px)
+    for y_dot in range(200, bh - 200, 120):
+        draw.ellipse([18, y_dot - 5, 28, y_dot + 5],           fill=(220, 30, 30))
+        draw.ellipse([bw - 28, y_dot - 5, bw - 18, y_dot + 5], fill=(220, 30, 30))
 
-    # Шрифты
     font_huge  = _get_font(100, bold=True)
     font_big   = _get_font(80,  bold=True)
     font_med   = _get_font(50,  bold=False)
@@ -602,56 +543,43 @@ def create_intro_banner(date_str: str, news_count: int, output_path: str) -> str
     font_xs    = _get_font(35,  bold=False)
 
     # Красный круг-иконка
-    icon_cy = 370
-    icon_r  = 130
+    icon_cy, icon_r = 370, 130
     draw.ellipse(
-        [W // 2 - icon_r, icon_cy - icon_r, W // 2 + icon_r, icon_cy + icon_r],
+        [bw // 2 - icon_r, icon_cy - icon_r, bw // 2 + icon_r, icon_cy + icon_r],
         fill=(220, 30, 30),
     )
-    draw.text((W // 2, icon_cy), "🌍", font=font_huge, anchor="mm", fill=(255, 255, 255))
+    draw.text((bw // 2, icon_cy), "🌍", font=font_huge, anchor="mm", fill=(255, 255, 255))
 
-    # "TIN TỨC HÔM NAY"
-    y_title = 580
-    draw.text((W // 2 + 4, y_title + 4), "TIN TUC HOM NAY",
-              font=font_huge, anchor="mm", fill=(0, 0, 0))
-    draw.text((W // 2,     y_title),     "TIN TUC HOM NAY",
-              font=font_huge, anchor="mm", fill=(255, 255, 255))
+    # Заголовок баннера
+    _draw_text_centered(draw, "TIN TUC HOM NAY", font_huge, 580, bw, (255, 255, 255))
 
     # Дата
-    draw.text((W // 2, 700), date_str, font=font_med, anchor="mm", fill=(160, 160, 160))
+    draw.text((bw // 2, 700), date_str, font=font_med, anchor="mm", fill=(160, 160, 160))
 
-    # Красная горизонтальная линия
-    draw.rectangle([(80, 790), (W - 80, 795)], fill=(220, 30, 30))
+    # Красная линия
+    draw.rectangle([(80, 790), (bw - 80, 795)], fill=(220, 30, 30))
 
-    # "TOP SỰ KIỆN"
-    y_top = 910
-    draw.text((W // 2 + 4, y_top + 4), "TOP SU KIEN",
-              font=font_big, anchor="mm", fill=(0, 0, 0))
-    draw.text((W // 2,     y_top),     "TOP SU KIEN",
-              font=font_big, anchor="mm", fill=(255, 255, 255))
+    # TOP SU KIEN
+    _draw_text_centered(draw, "TOP SU KIEN", font_big, 910, bw, (255, 255, 255))
 
-    # Количество новостей
-    count_text = f"{news_count} tin tuc hom nay"
-    draw.text((W // 2, 1040), count_text, font=font_med, anchor="mm", fill=(220, 30, 30))
+    # Количество
+    draw.text((bw // 2, 1040), f"{news_count} tin tuc hom nay",
+              font=font_med, anchor="mm", fill=(220, 30, 30))
 
     # Декоративные точки по центру
     for i, x_dot in enumerate(range(380, 720, 60)):
         color = (220, 30, 30) if i % 2 == 0 else (100, 100, 100)
-        dot_r = 8
-        draw.ellipse([x_dot - dot_r, 1160 - dot_r, x_dot + dot_r, 1160 + dot_r], fill=color)
+        r = 8
+        draw.ellipse([x_dot - r, 1160 - r, x_dot + r, 1160 + r], fill=color)
 
     # Горизонтальная линия
-    draw.rectangle([(80, 1240), (W - 80, 1245)], fill=(220, 30, 30))
+    draw.rectangle([(80, 1240), (bw - 80, 1245)], fill=(220, 30, 30))
 
-    # Название канала
-    y_channel = 1700
-    draw.text((W // 2 + 3, y_channel + 3), "@todayrealnews",
-              font=font_small, anchor="mm", fill=(0, 0, 0))
-    draw.text((W // 2, y_channel), "@todayrealnews",
-              font=font_small, anchor="mm", fill=(255, 255, 255))
+    # Канал
+    _draw_text_centered(draw, "@todayrealnews", font_small, 1700, bw, (255, 255, 255))
 
-    # Призыв подписаться
-    draw.text((W // 2, 1790), "Dang ky de khong bo lo",
+    # Призыв
+    draw.text((bw // 2, 1790), "Dang ky de khong bo lo",
               font=font_xs, anchor="mm", fill=(140, 140, 140))
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -664,76 +592,64 @@ def create_intro_banner(date_str: str, news_count: int, output_path: str) -> str
 
 def create_subscribe_banner(output_path: str) -> str:
     """
-    Создаёт финальный рекламный баннер «Theo dõi kênh» (1080×1920) на вьетнамском.
-    Возвращает путь к сохранённому файлу.
+    Создаёт финальный рекламный баннер «DANG KY NGAY» (1080×1920) на вьетнамском.
     """
-    W, H = 1080, 1920
+    bw, bh = 1080, 1920
 
-    img  = Image.new("RGB", (W, H), (0, 0, 0))
+    img  = Image.new("RGB", (bw, bh), (0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Тёмно-синий → чёрный
-    _dark_gradient(draw, W, H, (5, 5, 20), (0, 0, 0))
+    _dark_gradient(draw, bw, bh, (5, 5, 20), (0, 0, 0))
 
     # Декоративные круги
     for _ in range(8):
-        cx = random.randint(0, W)
-        cy = random.randint(0, H)
+        cx = random.randint(0, bw)
+        cy = random.randint(0, bh)
         cr = random.randint(100, 400)
-        draw.ellipse(
-            [cx - cr, cy - cr, cx + cr, cy + cr],
-            fill=None,
-            outline=(255, 50, 50),
-        )
+        draw.ellipse([cx - cr, cy - cr, cx + cr, cy + cr],
+                     fill=None, outline=(255, 50, 50))
 
-    # Шрифты
     font_big   = _get_font(90, bold=True)
     font_med   = _get_font(55, bold=True)
     font_small = _get_font(40, bold=False)
 
-    # Красный круг-иконка
-    icon_y = 400
-    icon_r = 110
+    # Иконка
+    icon_y, icon_r = 400, 110
     draw.ellipse(
-        [W // 2 - icon_r, icon_y - icon_r, W // 2 + icon_r, icon_y + icon_r],
+        [bw // 2 - icon_r, icon_y - icon_r, bw // 2 + icon_r, icon_y + icon_r],
         fill=(220, 30, 30),
     )
-    draw.text((W // 2, icon_y), "📰", font=font_big, anchor="mm", fill=(255, 255, 255))
+    draw.text((bw // 2, icon_y), "📰", font=font_big, anchor="mm", fill=(255, 255, 255))
 
     # Разделитель
-    draw.rectangle([(100, icon_y + icon_r + 50), (W - 100, icon_y + icon_r + 55)],
+    draw.rectangle([(100, icon_y + icon_r + 50), (bw - 100, icon_y + icon_r + 55)],
                    fill=(220, 30, 30))
 
-    # Главный текст (вьетнамский)
-    text_blocks = [
-        ("THEO DOI",   font_med, (180, 180, 180), 720),
-        ("TIN TUC",    font_big, (255, 255, 255), 840),
-        ("THE GIOI!",  font_big, (255, 255, 255), 960),
-        ("MOI NGAY",   font_big, (220,  30,  30), 1090),
-    ]
-    for text, font, color, y in text_blocks:
-        draw.text((W // 2 + 3, y + 3), text, font=font, anchor="mm", fill=(0, 0, 0))
-        draw.text((W // 2, y),          text, font=font, anchor="mm", fill=color)
+    # Текстовые блоки
+    for text, font, color, y in [
+        ("THEO DOI",  font_med, (180, 180, 180), 720),
+        ("TIN TUC",   font_big, (255, 255, 255), 840),
+        ("THE GIOI!", font_big, (255, 255, 255), 960),
+        ("MOI NGAY",  font_big, (220,  30,  30), 1090),
+    ]:
+        _draw_text_centered(draw, text, font, y, bw, color)
 
-    # Разделитель перед кнопкой
-    draw.rectangle([(100, 1210), (W - 100, 1215)], fill=(220, 30, 30))
+    # Разделитель
+    draw.rectangle([(100, 1210), (bw - 100, 1215)], fill=(220, 30, 30))
 
-    # Кнопка «ĐĂNG KÝ NGAY»
+    # Кнопка
     btn_y = 1340
-    draw.rounded_rectangle(
-        [150, btn_y - 65, W - 150, btn_y + 65],
-        radius=42,
-        fill=(220, 30, 30),
-    )
-    draw.text((W // 2, btn_y), "DANG KY NGAY",
+    draw.rounded_rectangle([150, btn_y - 65, bw - 150, btn_y + 65],
+                            radius=42, fill=(220, 30, 30))
+    draw.text((bw // 2, btn_y), "DANG KY NGAY",
               font=font_med, anchor="mm", fill=(255, 255, 255))
 
-    # Название канала
-    draw.text((W // 2, 1490), "@todayrealnews",
+    # Канал
+    draw.text((bw // 2, 1490), "@todayrealnews",
               font=font_med, anchor="mm", fill=(255, 255, 255))
 
     # Подпись
-    draw.text((W // 2, 1660), "Tin tuc moi ngay luc 10:00",
+    draw.text((bw // 2, 1660), "Tin tuc moi ngay luc 10:00",
               font=font_small, anchor="mm", fill=(150, 150, 150))
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)

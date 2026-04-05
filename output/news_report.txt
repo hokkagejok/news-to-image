@@ -1,0 +1,188 @@
+============================================================
+DIGEST TIN TUC — 05.04.2026
+============================================================
+
+TIN #1 [WORLD]
+------------------------------------------------------------
+Tieu de:   Phi công Mỹ được giải cứu khỏi Iran khi Trump nói rằng hoạt động có sự tham gia của hàng chục máy bay chiến đấu
+Nguon:     BBC News
+Mo ta:     BBC cho biết đã có "sự giao tiếp" giữa các lực lượng Mỹ và Iran trong nhiệm vụ giải cứu.
+Hinh anh:  output\images\001_BBC_News_Phi công Mỹ được giải cứu khỏi Iran khi Trump nói rằng hoạt .png
+Lien ket:  https://www.bbc.com/news/live/cm29zmpdj3vt
+------------------------------------------------------------
+
+TIN #2 [WORLD]
+------------------------------------------------------------
+Tieu de:   Những gì chúng ta biết cho đến nay về việc giải cứu sĩ quan không quân Mỹ ở Iran
+Nguon:     BBC News
+Mo ta:     Mỹ đã giải cứu thành viên phi hành đoàn mất tích của máy bay chiến đấu F-15 của Mỹ bị bắn hạ ở miền nam Iran.
+Hinh anh:  output\images\002_BBC_News_Những gì chúng ta biết cho đến nay về việc giải cứu sĩ quan .png
+Lien ket:  https://www.bbc.com/news/articles/cm2k1dgz142o
+------------------------------------------------------------
+
+TIN #3 [WORLD]
+------------------------------------------------------------
+Tieu de:   Đức Tổng Giám mục cầu nguyện cho hòa bình Trung Đông trong bài giảng lễ Phục sinh đầu tiên
+Nguon:     BBC News
+Mo ta:     Bà Sarah Mullally kêu gọi 'chấm dứt bạo lực và hủy diệt' trước một giáo đoàn ở Canterbury.
+Hinh anh:  output\images\003_BBC_News_Đức Tổng Giám mục cầu nguyện cho hòa bình Trung Đông trong b.png
+Lien ket:  https://www.bbc.com/news/articles/c93edxr57d0o
+------------------------------------------------------------
+
+TIN #4 [WORLD]
+------------------------------------------------------------
+Tieu de:   Campuchia khánh thành tượng chuột đánh hơi mìn nổi tiếng Magawa
+Nguon:     BBC News
+Mo ta:     Bức tượng tôn vinh chú chuột túi khổng lồ châu Phi đã đánh hơi được hơn 100 quả mìn trong suốt cuộc đời của mình.
+Hinh anh:  output\images\004_BBC_News_Campuchia khánh thành tượng chuột đánh hơi mìn nổi tiếng Mag.png
+Lien ket:  https://www.bbc.com/news/articles/c0rx7xzd10xo
+------------------------------------------------------------
+
+TIN #5 [WORLD]
+------------------------------------------------------------
+Tieu de:   'Hoàn toàn ngoạn mục': Phi hành đoàn Artemis II lần đầu tiên nhìn thấy cái nhìn thoáng qua về phía xa của Mặt trăng
+Nguon:     BBC News
+Mo ta:     Các phi hành gia trong sứ mệnh Artemis II đang ở ngày thứ ba của hành trình vòng quanh phía xa của Mặt trăng.
+Hinh anh:  output\images\005_BBC_News_'Hoàn toàn ngoạn mục'_ Phi hành đoàn Artemis II lần đầu tiên.png
+Lien ket:  https://www.bbc.com/news/videos/ce3d5gkd2geo
+------------------------------------------------------------
+
+TIN #6 [WORLD]
+------------------------------------------------------------
+Tieu de:   Các video AI làm dấy lên lo ngại chống Ukraine trước cuộc bỏ phiếu quan trọng ở Hungary
+Nguon:     BBC News
+Mo ta:     Các video đã nhắm mục tiêu vào đối thủ bầu cử của Viktor Orbán, người có thể lật đổ ông sau 16 năm cầm quyền.
+Hinh anh:  output\images\006_BBC_News_Các video AI làm dấy lên lo ngại chống Ukraine trước cuộc bỏ.png
+Lien ket:  https://www.bbc.com/news/articles/c5yj97yd6v5o
+------------------------------------------------------------
+
+TIN #7 [WORLD]
+------------------------------------------------------------
+Tieu de:   Người đàn ông bị buộc tội bắn chết bé Kaori Patterson-Moore trong xe đẩy ở New York
+Nguon:     BBC News
+Mo ta:     Hai người đàn ông đã bị bắt vì bắn chết một em bé bảy tháng tuổi ở Williamsburg.
+Hinh anh:  output\images\007_BBC_News_Người đàn ông bị buộc tội bắn chết bé Kaori Patterson-Moore .png
+Lien ket:  https://www.bbc.com/news/articles/cx267dnex7ko
+------------------------------------------------------------
+
+TIN #8 [WORLD]
+------------------------------------------------------------
+Tieu de:   Keir Starmer 'quan ngại sâu sắc' về sự xuất hiện của Kanye West tại lễ hội
+Nguon:     BBC News
+Mo ta:     Rapper này đã bị chỉ trích đáng kể về những nhận xét mang tính xúc phạm và chống Do Thái của mình trong những năm gần đây.
+Hinh anh:  output\images\008_BBC_News_Keir Starmer 'quan ngại sâu sắc' về sự xuất hiện của Kanye W.png
+Lien ket:  https://www.bbc.com/news/articles/cp86942yj97o
+------------------------------------------------------------
+
+TIN #9 [WORLD]
+------------------------------------------------------------
+Tieu de:   ICE muốn xây dựng một trung tâm giam giữ - thị trấn nông nghiệp nhỏ này nói không
+Nguon:     BBC News
+Mo ta:     Người dân nói rằng họ ủng hộ chương trình nghị sự về nhập cư của chính quyền - nhưng không ủng hộ kế hoạch xây dựng một trung tâm giam giữ ở sân sau của họ.
+Hinh anh:  output\images\009_BBC_News_ICE muốn xây dựng một trung tâm giam giữ - thị trấn nông ngh.png
+Lien ket:  https://www.bbc.com/news/articles/cje47vy0w3ko
+------------------------------------------------------------
+
+TIN #10 [WORLD]
+------------------------------------------------------------
+Tieu de:   Apple ở tuổi 50: Gã khổng lồ công nghệ thành công và thất bại ở đâu?
+Nguon:     BBC News
+Mo ta:     Nhân dịp kỷ niệm 50 năm của gã khổng lồ công nghệ, chúng tôi yêu cầu các nhà phân tích nêu ra ba thành công và thất bại hàng đầu của Apple
+Hinh anh:  output\images\010_BBC_News_Apple ở tuổi 50_ Gã khổng lồ công nghệ thành công và thất bạ.png
+Lien ket:  https://www.bbc.com/news/articles/ckgxdn9lyd2o
+------------------------------------------------------------
+
+TIN #11 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Cho đồng nghiệp vay tiền còn bị vu cáo vào nhà họ ăn trộm
+Nguon:     VnExpress
+Mo ta:     Mãi chị không trả, tôi làm dữ, liền bị vợ chồng chị vu cáo, dùng thủ đoạn hù dọa, nói tôi vào nhà trộm của chị 5.200 USD.
+Hinh anh:  output\images\011_VnExpress_Cho đồng nghiệp vay tiền còn bị vu cáo vào nhà họ ăn trộm.png
+Lien ket:  https://vnexpress.net/cho-dong-nghiep-vay-tien-con-bi-vu-cao-vao-nha-ho-an-trom-5058735.html
+------------------------------------------------------------
+
+TIN #12 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Cựu Hoa hậu Hàn Quốc giảm cân thành công 16 kg
+Nguon:     VnExpress
+Mo ta:     Từng được chẩn đoán tiền tiểu đường, Kim Ji-yeon giảm thành công từ 75 kg xuống 59 kg trong 5 tháng nhờ ăn uống điều độ và cải thiện chất lượng giấc ngủ ở tuổi 48.
+Hinh anh:  output\images\012_VnExpress_Cựu Hoa hậu Hàn Quốc giảm cân thành công 16 kg.png
+Lien ket:  https://vnexpress.net/cuu-hoa-hau-han-quoc-giam-can-thanh-cong-16-kg-5058503.html
+------------------------------------------------------------
+
+TIN #13 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Barca có thể đăng quang La Liga ngay trận Kinh điển
+Nguon:     VnExpress
+Mo ta:     Để kịch bản này thành hiện thực, Barca chỉ cần duy trì khoảng cách 7 điểm hiện tại cho đến trận đại chiến với Real Madrid ngày 11/5 và đánh bại chính đối thủ ngay tại sân nhà Camp Nou.
+Hinh anh:  output\images\013_VnExpress_Barca có thể đăng quang La Liga ngay trận Kinh điển.png
+Lien ket:  https://vnexpress.net/barca-co-the-dang-quang-la-liga-ngay-tran-kinh-dien-5058768.html
+------------------------------------------------------------
+
+TIN #14 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Tạ Minh Tâm vui thú điền viên
+Nguon:     VnExpress
+Mo ta:     Nghệ sĩ Tạ Minh Tâm, 66 tuổi, dựng chòi câu cá, trồng cây, hoa tại nhà vườn 3.000 m2 ở Long An (Tây Ninh mới).
+Hinh anh:  output\images\014_VnExpress_Tạ Minh Tâm vui thú điền viên.png
+Lien ket:  https://vnexpress.net/ta-minh-tam-vui-thu-dien-vien-5058757.html
+------------------------------------------------------------
+
+TIN #15 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Ôtô chở ba người lật sau tai nạn ở TP HCM
+Nguon:     VnExpress
+Mo ta:     Ôtô chở ba người trong gia đình chạy trên quốc lộ 55 tông vào xe đậu bên lề, lao thêm 20 m rồi lật nghiêng bên đường, người dân phá cửa đưa các nạn nhân ra ngoài, trưa 5/4.
+Hinh anh:  output\images\015_VnExpress_Ôtô chở ba người lật sau tai nạn ở TP HCM.png
+Lien ket:  https://vnexpress.net/oto-cho-ba-nguoi-lat-sau-tai-nan-o-tp-hcm-5058779.html
+------------------------------------------------------------
+
+TIN #16 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Iran tuyên bố bắn hạ ba máy bay Mỹ tham gia tìm phi công
+Nguon:     VnExpress
+Mo ta:     Quân đội Iran tuyên bố lực lượng nước này bắn hạ hai trực thăng và một máy bay C-130 tham gia chiến dịch tìm kiếm phi công Mỹ.
+Hinh anh:  output\images\016_VnExpress_Iran tuyên bố bắn hạ ba máy bay Mỹ tham gia tìm phi công.png
+Lien ket:  https://vnexpress.net/iran-tuyen-bo-ban-ha-ba-may-bay-my-tham-gia-tim-phi-cong-5058773.html
+------------------------------------------------------------
+
+TIN #17 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   'Tuổi già dễ thở hơn khi lương hưu không phải gánh thuế'
+Nguon:     VnExpress
+Mo ta:     Khoản lương hưu nhỏ mỗi tháng khiến bố mẹ tôi phải cân nhắc từng đồng chi tiêu để duy trì cuộc sống tuổi già.
+Hinh anh:  output\images\017_VnExpress_'Tuổi già dễ thở hơn khi lương hưu không phải gánh thuế'.png
+Lien ket:  https://vnexpress.net/tuoi-gia-de-tho-hon-khi-luong-huu-khong-phai-ganh-thue-5058733.html
+------------------------------------------------------------
+
+TIN #18 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Phi hành gia Artemis II ăn gì trên tàu vũ trụ?
+Nguon:     VnExpress
+Mo ta:     Trong 10 ngày du hành Mặt Trăng và trở về Trái Đất, các phi hành gia Artemis II thưởng thức tới 189 món ăn và hơn 10 loại đồ uống.
+Hinh anh:  output\images\018_VnExpress_Phi hành gia Artemis II ăn gì trên tàu vũ trụ_.png
+Lien ket:  https://vnexpress.net/phi-hanh-gia-artemis-ii-an-gi-tren-tau-vu-tru-5058711.html
+------------------------------------------------------------
+
+TIN #19 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Tài xế kể khoảnh khắc cứu bé gái 2 tuổi tự băng qua quốc lộ
+Nguon:     VnExpress
+Mo ta:     Trên đường lái xe từ TP Huế vào Đà Nẵng, anh Lý Văn Tố phát hiện bé gái 2 tuổi tự băng qua quốc lộ 1A và kịp thời chạy đến đưa cháu vào nơi an toàn.
+Hinh anh:  output\images\019_VnExpress_Tài xế kể khoảnh khắc cứu bé gái 2 tuổi tự băng qua quốc lộ.png
+Lien ket:  https://vnexpress.net/tai-xe-ke-khoanh-khac-cuu-be-gai-2-tuoi-tu-bang-qua-quoc-lo-5058756.html
+------------------------------------------------------------
+
+TIN #20 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Thủ môn đấm khán giả ở Anh
+Nguon:     VnExpress
+Mo ta:     Thủ môn Joe Wright của Enfield Town đấm vào một khán giả đối phương ngay trong trận gặp chủ nhà Chelmsford City ở giải hạng Sáu tối 4/4.
+Hinh anh:  output\images\020_VnExpress_Thủ môn đấm khán giả ở Anh.png
+Lien ket:  https://vnexpress.net/thu-mon-dam-khan-gia-o-anh-5058727.html
+------------------------------------------------------------
+
+============================================================
+TONG CONG: 20 tin tuc
+Tao luc: 05.04.2026 luc 13:59
+============================================================
