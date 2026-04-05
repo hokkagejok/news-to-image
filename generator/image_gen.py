@@ -19,7 +19,7 @@ import random
 import urllib.parse
 
 import requests
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import (
@@ -250,13 +250,14 @@ def prepare_background(
 ) -> Image.Image:
     """
     Если img=None — генерирует тёмный градиентный фон.
-    Иначе — COVER-resize: масштабирует картинку так, чтобы она полностью
-    заполнила холст (без чёрных полос), затем обрезает лишнее по центру.
+    Иначе — режим FIT: картинка масштабируется так, чтобы полностью
+    влезть в холст без обрезки. Оставшееся пространство заполняется
+    размытой и затемнённой версией той же картинки.
 
-    Режим COVER:
-      - Если исходник шире цели (16:9 → 9:16) — масштабируем по высоте.
-      - Если исходник уже цели                  — масштабируем по ширине.
-    После масштабирования гарантируем, что оба измерения >= target.
+    Алгоритм:
+      1. Масштабируем картинку по наименьшей стороне (FIT).
+      2. Растягиваем оригинал на весь холст → размываем (GaussianBlur 30) → затемняем.
+      3. Вставляем FIT-картинку по центру поверх фона.
     """
     if img is None:
         return create_gradient_bg(target_w, target_h)
@@ -265,45 +266,26 @@ def prepare_background(
         img = img.convert("RGB")
 
     src_w, src_h = img.size
-    src_ratio    = src_w / src_h
-    dst_ratio    = target_w / target_h
 
-    # COVER: выбираем масштаб так, чтобы картинка заполнила весь холст
-    if src_ratio > dst_ratio:
-        # Исходник шире — масштабируем по высоте
-        scale = target_h / src_h
-    else:
-        # Исходник уже — масштабируем по ширине
-        scale = target_w / src_w
-
+    # FIT: масштабируем так, чтобы картинка полностью влезла в холст
+    scale = min(target_w / src_w, target_h / src_h)
     new_w = int(src_w * scale)
     new_h = int(src_h * scale)
 
-    # Страховка: ни одна из сторон не должна быть меньше target
-    if new_w < target_w:
-        scale = target_w / src_w
-        new_w = target_w
-        new_h = int(src_h * scale)
-    if new_h < target_h:
-        scale = target_h / src_h
-        new_h = target_h
-        new_w = int(src_w * scale)
+    img_resized = img.resize((new_w, new_h), Image.LANCZOS)
 
-    img = img.resize((new_w, new_h), Image.LANCZOS)
+    # Фон: оригинал растянут на весь холст → размыт → затемнён
+    bg   = img.resize((target_w, target_h), Image.LANCZOS)
+    bg   = bg.filter(ImageFilter.GaussianBlur(radius=30))
+    dark = Image.new("RGB", (target_w, target_h), (0, 0, 0))
+    bg   = Image.blend(bg, dark, alpha=0.5)
 
-    # Обрезаем по центру
-    left   = max(0, (new_w - target_w) // 2)
-    top    = max(0, (new_h - target_h) // 2)
-    right  = left + target_w
-    bottom = top  + target_h
+    # Вставляем FIT-картинку по центру
+    offset_x = (target_w - new_w) // 2
+    offset_y = (target_h - new_h) // 2
+    bg.paste(img_resized, (offset_x, offset_y))
 
-    img = img.crop((left, top, right, bottom))
-
-    # Финальный resize на случай погрешности округления
-    if img.size != (target_w, target_h):
-        img = img.resize((target_w, target_h), Image.LANCZOS)
-
-    return img
+    return bg
 
 
 def create_gradient_bg(w: int, h: int) -> Image.Image:
