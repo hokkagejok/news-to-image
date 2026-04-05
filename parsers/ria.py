@@ -177,6 +177,7 @@ def _fetch_article(url: str, hint_title: str) -> dict | None:
                 "image_url": "",
                 "description": "",
                 "source": SOURCE_NAME,
+                "type": "world",
                 "url": url,
             }
         return None
@@ -231,6 +232,7 @@ def _fetch_article(url: str, hint_title: str) -> dict | None:
         "image_url": image_url,
         "description": description,
         "source": SOURCE_NAME,
+        "type": "world",
         "url": url,
     }
 

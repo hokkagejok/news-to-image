@@ -1,9 +1,10 @@
 """
-news_to_image — главный модуль.
-Парсит новости → фильтрует кэш → дедуплицирует → переводит на русский
-→ генерирует PNG → создаёт PDF → сохраняет отчёт
-→ отправляет интро-баннер → отправляет новости в Telegram
-→ отправляет баннер подписки → обновляет кэш.
+news_to_image — главный модуль (вьетнамская версия).
+Парсит новости (мировые + Вьетнам) → фильтрует кэш → дедуплицирует
+→ переводит на вьетнамский → генерирует PNG (два стиля)
+→ создаёт PDF → сохраняет отчёт
+→ отправляет интро → новости → баннер подписки в Telegram
+→ обновляет кэш.
 
 Запуск: python main.py
 """
@@ -23,7 +24,7 @@ from config import (
     IMAGE_WIDTH, IMAGE_HEIGHT,
     TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
 )
-from parsers import parse_lenta, parse_ria, parse_bbc
+from parsers import parse_lenta, parse_ria, parse_bbc, parse_vnexpress
 from generator import create_image
 from generator.image_gen import create_intro_banner, create_subscribe_banner
 from telegram_sender import send_all, send_banner
@@ -34,21 +35,22 @@ from cache_manager import filter_new_news, add_to_cache
 # Порог схожести заголовков (0.0–1.0): >= порога → дубль
 DEDUP_THRESHOLD = 0.60
 
-# Задержка между запросами к Google Translate (секунды)
+# Задержка между запросами к переводчику (секунды)
 TRANSLATE_DELAY = 0.3
 
-# Источники, чьи заголовки/описания уже на русском — пропускаем перевод
-RUSSIAN_SOURCES = {"Lenta.ru", "RIA Novosti"}
+# Источники уже на вьетнамском — не переводить
+VIETNAMESE_SOURCES = {"VnExpress"}
 
 # Пути к баннерам
-INTRO_PATH   = os.path.join(IMAGES_DIR, "000_intro_banner.png")
-BANNER_PATH  = os.path.join(IMAGES_DIR, "000_subscribe_banner.png")
+INTRO_PATH  = os.path.join(IMAGES_DIR, "000_intro_banner.png")
+BANNER_PATH = os.path.join(IMAGES_DIR, "000_subscribe_banner.png")
 
-# Русские названия месяцев для интро-баннера
-_RU_MONTHS = {
-    1: "января", 2: "февраля", 3: "марта",    4: "апреля",
-    5: "мая",    6: "июня",    7: "июля",     8: "августа",
-    9: "сентября", 10: "октября", 11: "ноября", 12: "декабря",
+# Названия месяцев на вьетнамском
+_VI_MONTHS = {
+    1:  "thang 1",  2:  "thang 2",  3:  "thang 3",
+    4:  "thang 4",  5:  "thang 5",  6:  "thang 6",
+    7:  "thang 7",  8:  "thang 8",  9:  "thang 9",
+    10: "thang 10", 11: "thang 11", 12: "thang 12",
 }
 
 
@@ -68,9 +70,9 @@ def sanitize_filename(text: str, max_length: int = 60) -> str:
     return text[:max_length]
 
 
-def _ru_date(d: date) -> str:
-    """Возвращает дату в формате «5 апреля 2026»."""
-    return f"{d.day} {_RU_MONTHS[d.month]} {d.year}"
+def _vi_date(d: date) -> str:
+    """Возвращает дату в формате «ngày 5 tháng 4 năm 2026»."""
+    return f"ngay {d.day} {_VI_MONTHS[d.month]} nam {d.year}"
 
 
 # ── Сбор новостей ─────────────────────────────────────────────────────────────
@@ -86,6 +88,7 @@ def collect_all_news() -> list[dict]:
         ("Lenta.ru",    parse_lenta),
         ("RIA Novosti", parse_ria),
         ("BBC News",    parse_bbc),
+        ("VnExpress",   parse_vnexpress),
     ]
 
     for source_name, parser_func in parsers:
@@ -152,12 +155,12 @@ def deduplicate(news_list: list[dict]) -> list[dict]:
     return unique
 
 
-# ── Перевод на русский ────────────────────────────────────────────────────────
+# ── Перевод на вьетнамский ────────────────────────────────────────────────────
 
 def _make_translator():
     """
-    Возвращает функцию перевода через GoogleTranslator.
-    Если deep-translator не установлен — возвращает заглушку (текст без изменений).
+    Возвращает функцию перевода на вьетнамский через GoogleTranslator.
+    Если deep-translator не установлен — возвращает заглушку.
     """
     try:
         from deep_translator import GoogleTranslator
@@ -166,7 +169,7 @@ def _make_translator():
             if not text or not text.strip():
                 return text
             try:
-                result = GoogleTranslator(source="auto", target="ru").translate(text)
+                result = GoogleTranslator(source="auto", target="vi").translate(text)
                 return result if result else text
             except Exception as e:
                 print(f"    [Translate] Ошибка: {e}")
@@ -177,17 +180,17 @@ def _make_translator():
     except ImportError:
         print("[Translate] ВНИМАНИЕ: deep-translator не установлен.")
         print("            Запустите: pip install deep-translator")
-        print("            Перевод пропускается, заголовки останутся на оригинальном языке.")
+        print("            Перевод пропускается.")
         return lambda text: text
 
 
 def translate_all_news(news_list: list[dict]) -> list[dict]:
     """
-    Переводит title и description каждой новости на русский язык.
-    Новости из русскоязычных источников (Lenta, RIA) — пропускаются.
+    Переводит title и description на вьетнамский.
+    Новости из вьетнамских источников (VnExpress) — пропускаются.
     """
     print("\n" + "=" * 60)
-    print("  ПЕРЕВОД НА РУССКИЙ")
+    print("  ПЕРЕВОД НА ВЬЕТНАМСКИЙ")
     print("=" * 60)
 
     translate = _make_translator()
@@ -198,7 +201,8 @@ def translate_all_news(news_list: list[dict]) -> list[dict]:
     for idx, item in enumerate(news_list, 1):
         source = item.get("source", "")
 
-        if source in RUSSIAN_SOURCES:
+        # VnExpress уже на вьетнамском
+        if source in VIETNAMESE_SOURCES:
             skipped_count += 1
             continue
 
@@ -207,19 +211,19 @@ def translate_all_news(news_list: list[dict]) -> list[dict]:
 
         print(f"  [{idx}/{total}] {source}: {title_orig[:60]}...")
 
-        title_ru = translate(title_orig)
-        if title_ru != title_orig:
-            item["title"] = title_ru
+        title_vi = translate(title_orig)
+        if title_vi != title_orig:
+            item["title"] = title_vi
             translated_count += 1
 
         if desc_orig:
-            desc_ru = translate(desc_orig)
-            if desc_ru != desc_orig:
-                item["description"] = desc_ru
+            desc_vi = translate(desc_orig)
+            if desc_vi != desc_orig:
+                item["description"] = desc_vi
 
         time.sleep(TRANSLATE_DELAY)
 
-    print(f"\n[Перевод] Переведено: {translated_count}, пропущено (уже RU): {skipped_count}")
+    print(f"\n[Перевод] Переведено: {translated_count}, пропущено (уже VI): {skipped_count}")
     return news_list
 
 
@@ -235,10 +239,11 @@ def generate_images(news_list: list[dict]) -> list[str]:
     total = len(news_list)
 
     for idx, news_item in enumerate(news_list, 1):
-        title  = news_item.get("title",  "untitled")
-        source = news_item.get("source", "unknown")
+        title     = news_item.get("title",  "untitled")
+        source    = news_item.get("source", "unknown")
+        news_type = news_item.get("type",   "world")
 
-        print(f"\n[{idx}/{total}] {source}: {title[:70]}...")
+        print(f"\n[{idx}/{total}] [{news_type.upper()}] {source}: {title[:60]}...")
 
         safe_title  = sanitize_filename(title)
         safe_source = sanitize_filename(source).replace(" ", "_")
@@ -250,7 +255,6 @@ def generate_images(news_list: list[dict]) -> list[str]:
         if success:
             print(f"    ✓ Сохранено: {filename}")
             created_paths.append(output_path)
-            # Сохраняем путь к картинке в новость для отчёта и Telegram
             news_item["image_path"] = os.path.relpath(output_path)
         else:
             print(f"    ✗ Ошибка при создании изображения")
@@ -343,26 +347,27 @@ def save_news_report(news_list: list[dict]) -> None:
 
     lines: list[str] = []
     lines.append(sep_long)
-    lines.append(f"ДАЙДЖЕСТ НОВОСТЕЙ — {date_str}")
+    lines.append(f"DIGEST TIN TUC — {date_str}")
     lines.append(sep_long)
     lines.append("")
 
     json_records: list[dict] = []
 
     for idx, item in enumerate(news_list, 1):
-        title       = item.get("title",       "").strip() or "Нет данных"
-        source      = item.get("source",      "").strip() or "Нет данных"
-        description = item.get("description", "").strip() or "Нет данных"
-        image_path  = item.get("image_path",  "").strip() or "Нет данных"
-        url         = item.get("url",         "").strip() or "Нет данных"
+        title       = item.get("title",       "").strip() or "Khong co du lieu"
+        source      = item.get("source",      "").strip() or "Khong co du lieu"
+        news_type   = item.get("type",        "world")
+        description = item.get("description", "").strip() or "Khong co du lieu"
+        image_path  = item.get("image_path",  "").strip() or "Khong co du lieu"
+        url         = item.get("url",         "").strip() or "Khong co du lieu"
 
-        lines.append(f"📰 НОВОСТЬ #{idx}")
+        lines.append(f"TIN #{idx} [{news_type.upper()}]")
         lines.append(sep_short)
-        lines.append(f"Заголовок:    {title}")
-        lines.append(f"Источник:     {source}")
-        lines.append(f"Описание:     {description}")
-        lines.append(f"Картинка:     {image_path}")
-        lines.append(f"Ссылка:       {url}")
+        lines.append(f"Tieu de:   {title}")
+        lines.append(f"Nguon:     {source}")
+        lines.append(f"Mo ta:     {description}")
+        lines.append(f"Hinh anh:  {image_path}")
+        lines.append(f"Lien ket:  {url}")
         lines.append(sep_short)
         lines.append("")
 
@@ -370,14 +375,15 @@ def save_news_report(news_list: list[dict]) -> None:
             "number":      idx,
             "title":       title,
             "source":      source,
+            "type":        news_type,
             "description": description,
             "image_path":  image_path,
             "url":         url,
         })
 
     lines.append(sep_long)
-    lines.append(f"ИТОГО: {total} новостей")
-    lines.append(f"Сгенерировано: {date_str} в {time_str}")
+    lines.append(f"TONG CONG: {total} tin tuc")
+    lines.append(f"Tao luc: {date_str} luc {time_str}")
     lines.append(sep_long)
 
     with open(txt_path, "w", encoding="utf-8") as f:
@@ -406,7 +412,7 @@ def print_summary(
     pdf_path: str,
 ) -> None:
     print("\n" + "=" * 60)
-    print("  ГОТОВО")
+    print("  HOAN THANH / ГОТОВО")
     print("=" * 60)
     print(f"  Собрано новостей:     {raw_count}")
     print(f"  После фильтрации:     {unique_count}")
@@ -422,44 +428,44 @@ def print_summary(
 # ── Точка входа ───────────────────────────────────────────────────────────────
 
 def main() -> None:
-    start    = time.time()
-    today    = date.today()
-    date_ru  = _ru_date(today)
+    start   = time.time()
+    today   = date.today()
+    date_vi = _vi_date(today)
 
     print("\n" + "=" * 60)
-    print("  NEWS TO IMAGE — Новостной дайджест")
-    print(f"  Дата: {today.strftime('%d.%m.%Y')}")
+    print("  NEWS TO IMAGE — Ban tin hang ngay")
+    print(f"  Ngay: {today.strftime('%d.%m.%Y')}")
     print("=" * 60)
 
     # 1. Директории
     ensure_directories()
 
-    # 2. Сбор
+    # 2. Сбор новостей
     all_news = collect_all_news()
     if not all_news:
         print("\n[ВНИМАНИЕ] Новости не найдены. Проверьте подключение к интернету.")
         sys.exit(1)
 
-    # 3. Фильтрация по кэшу (убираем уже опубликованные)
+    # 3. Фильтрация по кэшу
     print("\n" + "=" * 60)
-    print("  ФИЛЬТРАЦИЯ КЭША")
+    print("  LOC CACHE / ФИЛЬТРАЦИЯ КЭША")
     print("=" * 60)
     all_news = filter_new_news(all_news)
 
     if len(all_news) == 0:
-        print("\n📭 Нет новых новостей для публикации!")
+        print("\n📭 Khong co tin moi! / Нет новых новостей!")
         sys.exit(0)
 
-    # 4. Дедупликация внутри текущей выборки
+    # 4. Дедупликация
     print("\n" + "=" * 60)
-    print("  ДЕДУПЛИКАЦИЯ")
+    print("  LOC TRUNG LAP / ДЕДУПЛИКАЦИЯ")
     print("=" * 60)
     unique_news = deduplicate(all_news)
 
-    # 5. Перевод на русский (только иноязычные источники)
+    # 5. Перевод на вьетнамский
     unique_news = translate_all_news(unique_news)
 
-    # 6. Генерация изображений
+    # 6. Генерация изображений (два стиля: world / vietnam)
     image_paths = generate_images(unique_news)
 
     # 7. PDF
@@ -467,40 +473,40 @@ def main() -> None:
 
     # 8. Отчёт
     print("\n" + "=" * 60)
-    print("  СОХРАНЕНИЕ ОТЧЁТА")
+    print("  LUU BAO CAO / СОХРАНЕНИЕ ОТЧЁТА")
     print("=" * 60)
     save_news_report(unique_news)
 
-    # 9. Вступительный баннер — создаём и отправляем ПЕРВЫМ
+    # 9. Вступительный баннер — отправляется ПЕРВЫМ
     print("\n" + "=" * 60)
-    print("  ВСТУПИТЕЛЬНЫЙ БАННЕР")
+    print("  BANNER GIOI THIEU / ВСТУПИТЕЛЬНЫЙ БАННЕР")
     print("=" * 60)
-    create_intro_banner(date_ru, len(unique_news), INTRO_PATH)
+    create_intro_banner(date_vi, len(unique_news), INTRO_PATH)
     intro_caption = (
-        f"🗞 Доброе утро! Сегодня {date_ru}\n\n"
-        f"⚡️ {len(unique_news)} главных новостей дня\n\n"
+        f"🗞 Chao buoi sang! Hom nay {date_vi}\n\n"
+        f"⚡️ {len(unique_news)} tin tuc chinh trong ngay\n\n"
         f"📲 @todayrealnews"
     )
     send_banner(INTRO_PATH, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, caption=intro_caption)
 
     # 10. Отправка всех новостей в Telegram
     print("\n" + "=" * 60)
-    print("  ОТПРАВКА НОВОСТЕЙ В TELEGRAM")
+    print("  GUI TELEGRAM / ОТПРАВКА НОВОСТЕЙ")
     print("=" * 60)
     print("📤 Отправка новостей в Telegram...")
     send_all(unique_news, IMAGES_DIR, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)
     print("✅ Все новости отправлены в Telegram!")
 
-    # 11. Баннер подписки — отправляем ПОСЛЕДНИМ
+    # 11. Баннер подписки — отправляется ПОСЛЕДНИМ
     print("\n" + "=" * 60)
-    print("  БАННЕР ПОДПИСКИ")
+    print("  BANNER DANG KY / БАННЕР ПОДПИСКИ")
     print("=" * 60)
     create_subscribe_banner(BANNER_PATH)
     send_banner(BANNER_PATH, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)
 
-    # 12. Добавляем опубликованные новости в кэш
+    # 12. Обновление кэша
     print("\n" + "=" * 60)
-    print("  ОБНОВЛЕНИЕ КЭША")
+    print("  CAP NHAT CACHE / ОБНОВЛЕНИЕ КЭША")
     print("=" * 60)
     for news in unique_news:
         add_to_cache(news)
@@ -508,7 +514,7 @@ def main() -> None:
 
     # 13. Итог
     elapsed = time.time() - start
-    print(f"\n  Время выполнения: {elapsed:.1f} сек.")
+    print(f"\n  Thoi gian thuc hien: {elapsed:.1f} giay")
     print_summary(len(all_news), len(unique_news), len(image_paths), pdf_path)
 
 
