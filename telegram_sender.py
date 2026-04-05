@@ -3,13 +3,14 @@
 
 Полный цикл (send_all):
   1. Загрузить ID предыдущих сообщений из output/message_ids.json
-  2. Удалить все старые сообщения из канала
+  2. Удалить все старые сообщения (сообщения >48ч пропускаются без ошибки)
   3. Отправить интро-баннер (000_intro_banner.png)
   4. Отправить все новости (NNN_*.png)
   5. Отправить баннер подписки (000_subscribe_banner.png)
   6. Сохранить ID всех новых сообщений в output/message_ids.json
 
-При следующем запуске шаг 2 удалит сообщения текущего запуска.
+ID сохраняются в репозиторий через git в GitHub Actions (workflow),
+что гарантирует персистентность между запусками.
 """
 
 import asyncio
@@ -64,34 +65,34 @@ def _credentials_ok(token: str, chat_id: str) -> bool:
 
 # ── Удаление старых сообщений ─────────────────────────────────────────────────
 
-async def _delete_old_messages_async(bot, chat_id: str) -> int:
+async def _delete_old_messages_async(bot, chat_id: str) -> None:
     """
     Удаляет все сообщения из message_ids.json.
-    Сообщения старше 48 часов Telegram не позволяет удалять — они пропускаются.
-    После удаления очищает файл.
-    """
-    from telegram.error import TelegramError
 
+    Telegram не позволяет удалять сообщения старше 48 часов — такие
+    пропускаются через try/except без прерывания цикла.
+    После попытки удаления всех ID файл очищается.
+    """
     ids = load_message_ids()
     if not ids:
-        print("[Telegram] 📭 Старых сообщений нет")
-        return 0
+        print("[Telegram] 📭 Нет старых сообщений для удаления")
+        return
 
     print(f"[Telegram] 🗑️ Найдено {len(ids)} старых сообщений, удаляю...")
     deleted = 0
+    failed  = 0
 
     for msg_id in ids:
         try:
             await bot.delete_message(chat_id=chat_id, message_id=msg_id)
             deleted += 1
-            await asyncio.sleep(0.3)
-        except TelegramError as e:
-            # Сообщение уже удалено, слишком старое или нет прав
-            print(f"[Telegram] ⚠️ Не удалось удалить {msg_id}: {e}")
+            await asyncio.sleep(0.5)
+        except Exception:
+            # Сообщение уже удалено, слишком старое (>48ч) или нет прав
+            failed += 1
 
     save_message_ids([])
-    print(f"[Telegram] 🗑️ Удалено: {deleted} из {len(ids)}")
-    return deleted
+    print(f"[Telegram] 🗑️ Удалено: {deleted} | Не удалось (старые/удалены): {failed}")
 
 
 # ── Отправка одного фото ──────────────────────────────────────────────────────
@@ -254,7 +255,7 @@ def send_all(
     Синхронная обёртка полного цикла отправки.
 
     Порядок:
-      1. Удалить сообщения из прошлого запуска
+      1. Удалить сообщения из прошлого запуска (>48ч — пропускаются молча)
       2. Отправить интро-баннер (000_intro_banner.png из images_folder)
       3. Отправить все новости из news_list
       4. Отправить баннер подписки (000_subscribe_banner.png из images_folder)
@@ -277,48 +278,3 @@ def send_all(
         _run_full_pipeline(news_list, images_folder, token, chat_id, intro_caption)
     )
     print(f"\n[Telegram] Итого отправлено новостей: {sent} из {len(news_list)}")
-
-
-def send_banner(
-    photo_path: str,
-    token: str,
-    chat_id: str,
-    caption: str = "",
-) -> None:
-    """
-    Отправляет одно фото в Telegram и добавляет его ID в message_ids.json.
-    Используется для отправки отдельных баннеров вне основного цикла.
-
-    Args:
-        photo_path: путь к PNG/JPG
-        token:      Telegram Bot Token
-        chat_id:    ID канала или чата
-        caption:    подпись к фото (опционально)
-    """
-    if not _credentials_ok(token, chat_id):
-        return
-
-    path = Path(photo_path)
-    if not path.exists():
-        print(f"[Telegram] Фото не найдено: {photo_path}")
-        return
-
-    if not caption:
-        caption = "📲 Dang ky @todayrealnews, de khong bo lo tin tuc! 🌍"
-
-    async def _do() -> None:
-        try:
-            from telegram import Bot
-        except ImportError:
-            print("[Telegram] ОШИБКА: python-telegram-bot не установлен.")
-            return
-
-        bot    = Bot(token=token)
-        msg_id = await _send_photo_async(bot, chat_id, path, caption)
-        if msg_id:
-            ids = load_message_ids()
-            ids.append(msg_id)
-            save_message_ids(ids)
-            print(f"[Telegram] ✅ Баннер отправлен: {path.name} (ID: {msg_id})")
-
-    asyncio.run(_do())

@@ -4,10 +4,10 @@ DIGEST TIN TUC — 05.04.2026
 
 TIN #1 [WORLD]
 ------------------------------------------------------------
-Tieu de:   Phi công Mỹ được giải cứu khỏi Iran khi Trump nói rằng hoạt động có sự tham gia của hàng chục máy bay chiến đấu
+Tieu de:   Chiến tranh Iran mới nhất: Trump đưa ra lời đe dọa đầy thách thức đối với Iran yêu cầu mở eo biển Hormuz
 Nguon:     BBC News
-Mo ta:     BBC cho biết đã có "sự giao tiếp" giữa các lực lượng Mỹ và Iran trong nhiệm vụ giải cứu.
-Hinh anh:  output\images\001_BBC_News_Phi công Mỹ được giải cứu khỏi Iran khi Trump nói rằng hoạt .png
+Mo ta:     Trong một bài đăng trên mạng xã hội, tổng thống Mỹ nói ở Iran “Thứ Ba sẽ là Ngày Nhà máy Điện và Ngày Cầu, tất cả sẽ gói gọn trong một” nếu tuyến đường vận chuyển chính không được mở lại.
+Hinh anh:  output\images\001_BBC_News_Chiến tranh Iran mới nhất_ Trump đưa ra lời đe dọa đầy thách.png
 Lien ket:  https://www.bbc.com/news/live/cm29zmpdj3vt
 ------------------------------------------------------------
 
@@ -15,18 +15,18 @@ TIN #2 [WORLD]
 ------------------------------------------------------------
 Tieu de:   Những gì chúng ta biết cho đến nay về việc giải cứu sĩ quan không quân Mỹ ở Iran
 Nguon:     BBC News
-Mo ta:     Mỹ đã giải cứu thành viên phi hành đoàn mất tích của máy bay chiến đấu F-15 của Mỹ bị bắn hạ ở miền nam Iran.
+Mo ta:     Mỹ đã giải cứu thành viên phi hành đoàn mất tích của máy bay chiến đấu F-15 của Mỹ bị bắn rơi ở miền nam Iran.
 Hinh anh:  output\images\002_BBC_News_Những gì chúng ta biết cho đến nay về việc giải cứu sĩ quan .png
 Lien ket:  https://www.bbc.com/news/articles/cm2k1dgz142o
 ------------------------------------------------------------
 
 TIN #3 [WORLD]
 ------------------------------------------------------------
-Tieu de:   Đức Tổng Giám mục cầu nguyện cho hòa bình Trung Đông trong bài giảng lễ Phục sinh đầu tiên
+Tieu de:   Người đàn ông bị buộc tội bắn chết bé Kaori Patterson-Moore trong xe đẩy ở New York
 Nguon:     BBC News
-Mo ta:     Bà Sarah Mullally kêu gọi 'chấm dứt bạo lực và hủy diệt' trước một giáo đoàn ở Canterbury.
-Hinh anh:  output\images\003_BBC_News_Đức Tổng Giám mục cầu nguyện cho hòa bình Trung Đông trong b.png
-Lien ket:  https://www.bbc.com/news/articles/c93edxr57d0o
+Mo ta:     Hai người đàn ông đã bị bắt vì bắn chết một em bé bảy tháng tuổi ở Williamsburg.
+Hinh anh:  output\images\003_BBC_News_Người đàn ông bị buộc tội bắn chết bé Kaori Patterson-Moore .png
+Lien ket:  https://www.bbc.com/news/articles/cx267dnex7ko
 ------------------------------------------------------------
 
 TIN #4 [WORLD]
@@ -49,38 +49,38 @@ Lien ket:  https://www.bbc.com/news/videos/ce3d5gkd2geo
 
 TIN #6 [WORLD]
 ------------------------------------------------------------
-Tieu de:   Các video AI làm dấy lên lo ngại chống Ukraine trước cuộc bỏ phiếu quan trọng ở Hungary
+Tieu de:   Đức Thánh Cha Leo kêu gọi các nhà lãnh đạo toàn cầu chọn hòa bình trong Thánh lễ Phục sinh đầu tiên của ngài
 Nguon:     BBC News
-Mo ta:     Các video đã nhắm mục tiêu vào đối thủ bầu cử của Viktor Orbán, người có thể lật đổ ông sau 16 năm cầm quyền.
-Hinh anh:  output\images\006_BBC_News_Các video AI làm dấy lên lo ngại chống Ukraine trước cuộc bỏ.png
-Lien ket:  https://www.bbc.com/news/articles/c5yj97yd6v5o
+Mo ta:     Đức Giáo Hoàng Leo XIV đã phát biểu trước hàng ngàn tín đồ tập trung tại Quảng trường Thánh Phêrô vào Chúa Nhật Phục Sinh trong bài diễn văn đầu tiên của ngài với tư cách là giáo hoàng.
+Hinh anh:  output\images\006_BBC_News_Đức Thánh Cha Leo kêu gọi các nhà lãnh đạo toàn cầu chọn hòa.png
+Lien ket:  https://www.bbc.com/news/articles/crk1zgjj7y1o
 ------------------------------------------------------------
 
 TIN #7 [WORLD]
 ------------------------------------------------------------
-Tieu de:   Người đàn ông bị buộc tội bắn chết bé Kaori Patterson-Moore trong xe đẩy ở New York
+Tieu de:   Keir Starmer 'quan ngại sâu sắc' về sự xuất hiện của Kanye West tại lễ hội
 Nguon:     BBC News
-Mo ta:     Hai người đàn ông đã bị bắt vì bắn chết một em bé bảy tháng tuổi ở Williamsburg.
-Hinh anh:  output\images\007_BBC_News_Người đàn ông bị buộc tội bắn chết bé Kaori Patterson-Moore .png
-Lien ket:  https://www.bbc.com/news/articles/cx267dnex7ko
+Mo ta:     Nhà tài trợ chính của lễ hội Pepsi đã rút tiền tài trợ khỏi Wireless, thông báo vào Chủ nhật.
+Hinh anh:  output\images\007_BBC_News_Keir Starmer 'quan ngại sâu sắc' về sự xuất hiện của Kanye W.png
+Lien ket:  https://www.bbc.com/news/articles/cp86942yj97o
 ------------------------------------------------------------
 
 TIN #8 [WORLD]
 ------------------------------------------------------------
-Tieu de:   Keir Starmer 'quan ngại sâu sắc' về sự xuất hiện của Kanye West tại lễ hội
+Tieu de:   ICE muốn xây dựng một trung tâm giam giữ - thị trấn nông nghiệp nhỏ này nói không
 Nguon:     BBC News
-Mo ta:     Nhà tài trợ chính của lễ hội Pepsi đã rút tiền tài trợ khỏi Wireless, thông báo vào Chủ nhật.
-Hinh anh:  output\images\008_BBC_News_Keir Starmer 'quan ngại sâu sắc' về sự xuất hiện của Kanye W.png
-Lien ket:  https://www.bbc.com/news/articles/cp86942yj97o
+Mo ta:     Người dân nói rằng họ ủng hộ chương trình nghị sự về nhập cư của chính quyền - nhưng không ủng hộ kế hoạch xây dựng một trung tâm giam giữ ở sân sau của họ.
+Hinh anh:  output\images\008_BBC_News_ICE muốn xây dựng một trung tâm giam giữ - thị trấn nông ngh.png
+Lien ket:  https://www.bbc.com/news/articles/cje47vy0w3ko
 ------------------------------------------------------------
 
 TIN #9 [WORLD]
 ------------------------------------------------------------
-Tieu de:   ICE muốn xây dựng một trung tâm giam giữ - thị trấn nông nghiệp nhỏ này nói không
+Tieu de:   Các video AI làm dấy lên lo ngại chống Ukraine trước cuộc bỏ phiếu quan trọng ở Hungary
 Nguon:     BBC News
-Mo ta:     Người dân nói rằng họ ủng hộ chương trình nghị sự về nhập cư của chính quyền - nhưng không ủng hộ kế hoạch xây dựng một trung tâm giam giữ ở sân sau của họ.
-Hinh anh:  output\images\009_BBC_News_ICE muốn xây dựng một trung tâm giam giữ - thị trấn nông ngh.png
-Lien ket:  https://www.bbc.com/news/articles/cje47vy0w3ko
+Mo ta:     Các video đã nhắm mục tiêu vào đối thủ bầu cử của Viktor Orbán, người có thể lật đổ ông sau 16 năm cầm quyền.
+Hinh anh:  output\images\009_BBC_News_Các video AI làm dấy lên lo ngại chống Ukraine trước cuộc bỏ.png
+Lien ket:  https://www.bbc.com/news/articles/c5yj97yd6v5o
 ------------------------------------------------------------
 
 TIN #10 [WORLD]
@@ -92,7 +92,268 @@ Hinh anh:  output\images\010_BBC_News_Apple ở tuổi 50_ Gã khổng lồ côn
 Lien ket:  https://www.bbc.com/news/articles/ckgxdn9lyd2o
 ------------------------------------------------------------
 
+TIN #11 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Iran tuyên bố bắn hạ ba máy bay Mỹ tham gia tìm phi công
+Nguon:     VnExpress
+Mo ta:     Quân đội Iran tuyên bố lực lượng nước này bắn hạ hai trực thăng và một máy bay C-130 tham gia chiến dịch tìm kiếm phi công Mỹ.
+Hinh anh:  output\images\011_VnExpress_Iran tuyên bố bắn hạ ba máy bay Mỹ tham gia tìm phi công.png
+Lien ket:  https://vnexpress.net/iran-tuyen-bo-ban-ha-ba-may-bay-my-tham-gia-tim-phi-cong-5058773.html
+------------------------------------------------------------
+
+TIN #12 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Hình ảnh vận tải cơ Mỹ bốc cháy trong cuộc giải cứu phi công
+Nguon:     VnExpress
+Mo ta:     Giới quan sát quân sự quốc tế và truyền thông Iran đăng hình ảnh vận tải cơ C-130 bốc cháy ở Iran, giới chức Mỹ nói họ đã tự hủy máy bay trong khi Iran tuyên bố họ đã phá hủy nó.
+Hinh anh:  output\images\012_VnExpress_Hình ảnh vận tải cơ Mỹ bốc cháy trong cuộc giải cứu phi công.png
+Lien ket:  https://vnexpress.net/hinh-anh-van-tai-co-my-boc-chay-trong-cuoc-giai-cuu-phi-cong-5058741.html
+------------------------------------------------------------
+
+TIN #13 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Ca sĩ AI hát '50 năm về sau' được yêu thích
+Nguon:     VnExpress
+Mo ta:     Ca sĩ AI hút chục triệu lượt nghe với "50 năm về sau" - ca khúc nhạc Hoa lời Việt nói về tình yêu bền vững.
+Hinh anh:  output\images\013_VnExpress_Ca sĩ AI hát '50 năm về sau' được yêu thích.png
+Lien ket:  https://vnexpress.net/ca-si-ai-hat-50-nam-ve-sau-duoc-yeu-thich-5058664.html
+------------------------------------------------------------
+
+TIN #14 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Tài xế kể khoảnh khắc cứu bé gái 2 tuổi tự băng qua quốc lộ
+Nguon:     VnExpress
+Mo ta:     TP HuếTrên đường lái xe từ TP Huế vào Đà Nẵng, anh Lý Văn Tố phát hiện bé gái 2 tuổi tự băng qua quốc lộ 1A và kịp thời chạy đến đưa cháu vào nơi an toàn.
+Hinh anh:  output\images\014_VnExpress_Tài xế kể khoảnh khắc cứu bé gái 2 tuổi tự băng qua quốc lộ.png
+Lien ket:  https://vnexpress.net/tai-xe-ke-khoanh-khac-cuu-be-gai-2-tuoi-tu-bang-qua-quoc-lo-5058756.html
+------------------------------------------------------------
+
+TIN #15 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Bị tàu hỏa tông khi nghe điện thoại, vượt rào chắn
+Nguon:     VnExpress
+Mo ta:     Hà NộiNgười đàn ông vừa nghe điện thoại vừa lái xe máy vượt qua đường sắt khi barie đã hạ, bị tàu tông trúng phía sau xe và ngã xuống đường.
+Hinh anh:  output\images\015_VnExpress_Bị tàu hỏa tông khi nghe điện thoại, vượt rào chắn.png
+Lien ket:  https://vnexpress.net/bi-tau-hoa-tong-khi-nghe-dien-thoai-vuot-rao-chan-5058799.html
+------------------------------------------------------------
+
+TIN #16 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Voi rừng phá rào thép, xông vào trường học ở Sơn La
+Nguon:     VnExpress
+Mo ta:     Camera ghi lại cảnh một con voi rừng nặng hơn hai tấn phá rào thép, xâm nhập vào Trường phổ thông dân tộc bán trú THCS Huổi Một lúc rạng sáng.
+Hinh anh:  output\images\016_VnExpress_Voi rừng phá rào thép, xông vào trường học ở Sơn La.png
+Lien ket:  https://vnexpress.net/voi-rung-pha-rao-thep-xong-vao-truong-hoc-o-son-la-5058798.html
+------------------------------------------------------------
+
+TIN #17 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Mỹ tuyên bố bắt người thân của tướng Iran
+Nguon:     VnExpress
+Mo ta:     Giới chức Mỹ thông báo bắt hai người thân của Qassem Soleimani, tướng vệ binh Iran đã bị hạ sát ở Iraq hồi năm 2020, song con gái ông phủ nhận thông tin này.
+Hinh anh:  output\images\017_VnExpress_Mỹ tuyên bố bắt người thân của tướng Iran.png
+Lien ket:  https://vnexpress.net/my-tuyen-bo-bat-nguoi-than-cua-tuong-iran-5058691.html
+------------------------------------------------------------
+
+TIN #18 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Người đàn ông thoát chết khi cố vượt barie chắn tàu
+Nguon:     VnExpress
+Mo ta:     Hà NộiDù barie tự động đã hạ, người đàn ông vẫn cố lách qua đường ray, bị tàu hỏa húc vào đuôi xe máy và hất văng ra đường.
+Hinh anh:  output\images\018_VnExpress_Người đàn ông thoát chết khi cố vượt barie chắn tàu.png
+Lien ket:  https://vnexpress.net/nguoi-dan-ong-thoat-chet-khi-co-vuot-barie-chan-tau-5058804.html
+------------------------------------------------------------
+
+TIN #19 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Tỷ phú Phạm Nhật Vượng giàu nhất Đông Nam Á
+Nguon:     VnExpress
+Mo ta:     Với khối tài sản hơn 24,5 tỷ USD, ông Phạm Nhật Vượng, Chủ tịch Vingroup, đã vượt ông Prajogo Pangestu, người Indonesia, trở thành người giàu nhất Đông Nam Á.
+Hinh anh:  output\images\019_VnExpress_Tỷ phú Phạm Nhật Vượng giàu nhất Đông Nam Á.png
+Lien ket:  https://vnexpress.net/ty-phu-pham-nhat-vuong-giau-nhat-dong-nam-a-5058650.html
+------------------------------------------------------------
+
+TIN #20 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Tạ Minh Tâm vui thú điền viên
+Nguon:     VnExpress
+Mo ta:     Nghệ sĩ Tạ Minh Tâm, 66 tuổi, dựng chòi câu cá, trồng cây, hoa tại nhà vườn 3.000 m2 ở Long An (Tây Ninh mới).
+Hinh anh:  output\images\020_VnExpress_Tạ Minh Tâm vui thú điền viên.png
+Lien ket:  https://vnexpress.net/ta-minh-tam-vui-thu-dien-vien-5058757.html
+------------------------------------------------------------
+
+TIN #21 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   CSGT ngồi trên ô tô ‘hóa trang’ ghi hình xử lý tài xế dùng điện thoại khi lái xe trên cao tốc
+Nguon:     Tuoi Tre
+Mo ta:     Khong co du lieu
+Hinh anh:  output\images\021_Tuoi_Tre_CSGT ngồi trên ô tô ‘hóa trang’ ghi hình xử lý tài xế dùng đ.png
+Lien ket:  https://tuoitre.vn/csgt-ngoi-tren-o-to-hoa-trang-ghi-hinh-xu-ly-tai-xe-dung-dien-thoai-khi-lai-xe-tren-cao-toc-20260405193016565.htm
+------------------------------------------------------------
+
+TIN #22 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Xuân Son thăng hoa giúp CLB Nam Định thắng trận thứ 5 liên tiếp
+Nguon:     Tuoi Tre
+Mo ta:     Khong co du lieu
+Hinh anh:  output\images\022_Tuoi_Tre_Xuân Son thăng hoa giúp CLB Nam Định thắng trận thứ 5 liên t.png
+Lien ket:  https://tuoitre.vn/xuan-son-thang-hoa-giup-clb-nam-dinh-thang-tran-thu-5-lien-tiep-20260405202145402.htm
+------------------------------------------------------------
+
+TIN #23 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Iran tuyên bố Mỹ thất bại hoàn toàn trong chiến dịch giải cứu phi công
+Nguon:     Tuoi Tre
+Mo ta:     Khong co du lieu
+Hinh anh:  output\images\023_Tuoi_Tre_Iran tuyên bố Mỹ thất bại hoàn toàn trong chiến dịch giải cứ.png
+Lien ket:  https://tuoitre.vn/iran-tuyen-bo-my-that-bai-hoan-toan-trong-chien-dich-giai-cuu-phi-cong-20260405191859727.htm
+------------------------------------------------------------
+
+TIN #24 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Quảng cáo, tiếp thị sữa thay thế sữa mẹ có thể bị phạt đến 20 triệu đồng
+Nguon:     Tuoi Tre
+Mo ta:     Khong co du lieu
+Hinh anh:  output\images\024_Tuoi_Tre_Quảng cáo, tiếp thị sữa thay thế sữa mẹ có thể bị phạt đến 2.png
+Lien ket:  https://tuoitre.vn/quang-cao-tiep-thi-sua-thay-the-sua-me-co-the-bi-phat-den-20-trieu-dong-20260405181456473.htm
+------------------------------------------------------------
+
+TIN #25 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Bắt khẩn cấp nam thanh niên đánh người sau va chạm giao thông ở phường Dĩ An
+Nguon:     Tuoi Tre
+Mo ta:     Khong co du lieu
+Hinh anh:  output\images\025_Tuoi_Tre_Bắt khẩn cấp nam thanh niên đánh người sau va chạm giao thôn.png
+Lien ket:  https://tuoitre.vn/bat-khan-cap-nam-thanh-nien-danh-nguoi-sau-va-cham-giao-thong-o-phuong-di-an-20260405194818193.htm
+------------------------------------------------------------
+
+TIN #26 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Lộ diện doanh nghiệp Việt có tỉ lệ 'chọi' cao ngất: 6.300 hồ sơ ứng tuyển, chọn 38 người
+Nguon:     Tuoi Tre
+Mo ta:     Khong co du lieu
+Hinh anh:  output\images\026_Tuoi_Tre_Lộ diện doanh nghiệp Việt có tỉ lệ 'chọi' cao ngất_ 6.300 hồ.png
+Lien ket:  https://tuoitre.vn/lo-dien-doanh-nghiep-viet-co-ti-le-choi-cao-ngat-6-300-ho-so-ung-tuyen-chon-38-nguoi-20260405173047182.htm
+------------------------------------------------------------
+
+TIN #27 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Bộ trưởng Quốc phòng Israel dọa giết lãnh đạo Iran, ca ngợi hợp tác với Mỹ
+Nguon:     Tuoi Tre
+Mo ta:     Khong co du lieu
+Hinh anh:  output\images\027_Tuoi_Tre_Bộ trưởng Quốc phòng Israel dọa giết lãnh đạo Iran, ca ngợi .png
+Lien ket:  https://tuoitre.vn/bo-truong-quoc-phong-israel-doa-giet-lanh-dao-iran-ca-ngoi-hop-tac-voi-my-20260405201030966.htm
+------------------------------------------------------------
+
+TIN #28 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Tại sao ảnh Trái đất năm 2026 lại 'nhợt nhạt' hơn ảnh năm 1972?
+Nguon:     Tuoi Tre
+Mo ta:     Hai bức ảnh Trái Đất được NASA đăng tải đã tạo ra làn sóng tranh luận về sự thay đổi diện mạo của hành tinh xanh sau hơn nửa thế kỷ.
+Hinh anh:  output\images\028_Tuoi_Tre_Tại sao ảnh Trái đất năm 2026 lại 'nhợt nhạt' hơn ảnh năm 19.png
+Lien ket:  https://tuoitre.vn/tai-sao-anh-trai-dat-nam-2026-lai-nhot-nhat-hon-anh-nam-1972-20260405190742264.htm
+------------------------------------------------------------
+
+TIN #29 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Văn Thuận lập siêu phẩm vào lưới Hoàng Anh Gia Lai, mang về chiến thắng cho Ninh Bình
+Nguon:     Tuoi Tre
+Mo ta:     Tuyển thủ U23 Việt Nam - Lê Văn Thuận (19 tuổi) đã có một ngày thi đấu hiệu quả khi lập siêu phẩm sút xa, giúp Ninh Bình lội ngược dòng trước Hoàng Anh Gia Lai.
+Hinh anh:  output\images\029_Tuoi_Tre_Văn Thuận lập siêu phẩm vào lưới Hoàng Anh Gia Lai, mang về .png
+Lien ket:  https://tuoitre.vn/van-thuan-lap-sieu-pham-vao-luoi-hoang-anh-gia-lai-mang-ve-chien-thang-cho-ninh-binh-20260405203949697.htm
+------------------------------------------------------------
+
+TIN #30 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Hà Nội: Nguyện vọng chuyên Anh áp đảo trong 2 ngày đăng ký thi thử lớp 10
+Nguon:     Dan Tri
+Mo ta:     Học sinh lớp 9 tại Hà Nội đã bắt đầu thử nghiệm đăng ký nguyện vọng dự thi trực tuyến vào lớp 10 công lập.
+Hinh anh:  output\images\030_Dan_Tri_Hà Nội_ Nguyện vọng chuyên Anh áp đảo trong 2 ngày đăng ký t.png
+Lien ket:  https://dantri.com.vn/giao-duc/ha-noi-nguyen-vong-chuyen-anh-ap-dao-trong-2-ngay-dang-ky-thi-thu-lop-10-20260405111656790.htm
+------------------------------------------------------------
+
+TIN #31 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Tỷ lệ học lớp 10 công lập của Hà Nội thấp nhất trong 10 năm
+Nguon:     Dan Tri
+Mo ta:     Khong co du lieu
+Hinh anh:  output\images\031_Dan_Tri_Tỷ lệ học lớp 10 công lập của Hà Nội thấp nhất trong 10 năm.png
+Lien ket:  https://dantri.com.vn/giao-duc/ty-le-hoc-lop-10-cong-lap-cua-ha-noi-thap-nhat-trong-10-nam-20260405093234314.htm
+------------------------------------------------------------
+
+TIN #32 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Gần 140.000 thí sinh tranh “vé sớm” vào đại học ở kỳ thi đánh giá năng lực
+Nguon:     Dan Tri
+Mo ta:     Khong co du lieu
+Hinh anh:  output\images\032_Dan_Tri_Gần 140.000 thí sinh tranh “vé sớm” vào đại học ở kỳ thi đán.png
+Lien ket:  https://dantri.com.vn/giao-duc/gan-140000-thi-sinh-tranh-ve-som-vao-dai-hoc-o-ky-thi-danh-gia-nang-luc-20260405084342297.htm
+------------------------------------------------------------
+
+TIN #33 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Sáng nay, gần 140.000 sĩ tử dự "cuộc đua" đặc biệt giành vé sớm vào đại học
+Nguon:     Dan Tri
+Mo ta:     Khong co du lieu
+Hinh anh:  output\images\033_Dan_Tri_Sáng nay, gần 140.000 sĩ tử dự _cuộc đua_ đặc biệt giành vé .png
+Lien ket:  https://dantri.com.vn/giao-duc/sang-nay-gan-140000-si-tu-du-cuoc-dua-dac-biet-gianh-ve-som-vao-dai-hoc-20260405051030066.htm
+------------------------------------------------------------
+
+TIN #34 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Gần 20.000 học sinh Hà Nội không có suất lớp 10: Chuyển hướng học nghề
+Nguon:     Dan Tri
+Mo ta:     Khong co du lieu
+Hinh anh:  output\images\034_Dan_Tri_Gần 20.000 học sinh Hà Nội không có suất lớp 10_ Chuyển hướn.png
+Lien ket:  https://dantri.com.vn/giao-duc/gan-20000-hoc-sinh-ha-noi-khong-co-suat-lop-10-chuyen-huong-hoc-nghe-20260405012333999.htm
+------------------------------------------------------------
+
+TIN #35 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Hà Nội công bố chỉ tiêu lớp 10 công lập, tỷ lệ trúng tuyển 55%
+Nguon:     Dan Tri
+Mo ta:     Khong co du lieu
+Hinh anh:  output\images\035_Dan_Tri_Hà Nội công bố chỉ tiêu lớp 10 công lập, tỷ lệ trúng tuyển 5.png
+Lien ket:  https://dantri.com.vn/giao-duc/ha-noi-cong-bo-chi-tieu-lop-10-cong-lap-ty-le-trung-tuyen-55-20260404235804779.htm
+------------------------------------------------------------
+
+TIN #36 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Vừa tốt nghiệp, có sinh viên thu nhập hàng trăm triệu đồng
+Nguon:     Dan Tri
+Mo ta:     Khong co du lieu
+Hinh anh:  output\images\036_Dan_Tri_Vừa tốt nghiệp, có sinh viên thu nhập hàng trăm triệu đồng.png
+Lien ket:  https://dantri.com.vn/giao-duc/vua-tot-nghiep-co-sinh-vien-thu-nhap-hang-tram-trieu-dong-20260404151021873.htm
+------------------------------------------------------------
+
+TIN #37 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Phát hiện nhiều vi phạm tại một trường THPT ở Cà Mau
+Nguon:     Dan Tri
+Mo ta:     Khong co du lieu
+Hinh anh:  output\images\037_Dan_Tri_Phát hiện nhiều vi phạm tại một trường THPT ở Cà Mau.png
+Lien ket:  https://dantri.com.vn/giao-duc/phat-hien-nhieu-vi-pham-tai-mot-truong-thpt-o-ca-mau-20260404133713411.htm
+------------------------------------------------------------
+
+TIN #38 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Điểm tuần: Nhiều tài khoản Facebook bị khóa, iPhone 18 Pro Max lộ giá bán
+Nguon:     Dan Tri
+Mo ta:     Những thông tin công nghệ nổi bật tuần qua gồm iPhone 18 Pro Max lộ giá bán, Facebook khóa hàng loạt tài khoản Facebook tại Việt Nam, Google cho phép người dùng thay đổi địa chỉ Gmail.
+Hinh anh:  output\images\038_Dan_Tri_Điểm tuần_ Nhiều tài khoản Facebook bị khóa, iPhone 18 Pro M.png
+Lien ket:  https://dantri.com.vn/cong-nghe/diem-tuan-nhieu-tai-khoan-facebook-bi-khoa-iphone-18-pro-max-lo-gia-ban-20260402233918730.htm
+------------------------------------------------------------
+
+TIN #39 [VIETNAM]
+------------------------------------------------------------
+Tieu de:   Clip “bếp gas mini bất ngờ phát nổ giữa bàn tiệc gây bỏng” nổi bật tuần qua
+Nguon:     Dan Tri
+Mo ta:     Khong co du lieu
+Hinh anh:  output\images\039_Dan_Tri_Clip “bếp gas mini bất ngờ phát nổ giữa bàn tiệc gây bỏng” n.png
+Lien ket:  https://dantri.com.vn/cong-nghe/clip-bep-gas-mini-bat-ngo-phat-no-giua-ban-tiec-gay-bong-noi-bat-tuan-qua-20260405012526086.htm
+------------------------------------------------------------
+
 ============================================================
-TONG CONG: 10 tin tuc
-Tao luc: 05.04.2026 luc 14:28
+TONG CONG: 39 tin tuc
+Tao luc: 05.04.2026 luc 17:31
 ============================================================

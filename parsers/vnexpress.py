@@ -1,17 +1,36 @@
 """
-Парсер новостей с VnExpress (vnexpress.net) — крупнейшее вьетнамское издание.
+Парсер VnExpress (vnexpress.net) — крупнейшее вьетнамское издание.
 
 Алгоритм:
-  1. Загружаем главную страницу vnexpress.net
-  2. Из каждого article.item-news берём заголовок, ссылку, описание, картинку
-  3. Если картинка не найдена в HTML — заходим на страницу статьи за og:image
+  1. Загружаем главную страницу
+  2. Берём заголовок, ссылку, описание, картинку из карточки
+  3. Если картинка не найдена — заходим на страницу статьи за og:image / twitter:image
 """
 
 import requests
 from bs4 import BeautifulSoup
 
-_HEADERS = {"User-Agent": "Mozilla/5.0"}
+_HEADERS  = {"User-Agent": "Mozilla/5.0"}
 _BASE_URL = "https://vnexpress.net"
+
+
+def get_article_image(url: str, headers: dict) -> str:
+    """Загружает страницу статьи и возвращает og:image или twitter:image."""
+    try:
+        r = requests.get(url, headers=headers, timeout=8)
+        r.raise_for_status()
+        s = BeautifulSoup(r.text, "lxml")
+
+        og = s.find("meta", {"property": "og:image"})
+        if og and og.get("content"):
+            return og.get("content", "")
+
+        tw = s.find("meta", {"name": "twitter:image"})
+        if tw and tw.get("content"):
+            return tw.get("content", "")
+    except Exception:
+        pass
+    return ""
 
 
 def get_news() -> list[dict]:
@@ -29,7 +48,6 @@ def get_news() -> list[dict]:
             title_tag = item.select_one("h3.title-news a, h2.title-news a")
             img_tag   = item.select_one("img")
             desc_tag  = item.select_one("p.description a, p.description")
-            link_tag  = item.select_one("h3.title-news a, h2.title-news a")
 
             if not title_tag:
                 continue
@@ -37,6 +55,8 @@ def get_news() -> list[dict]:
             title = title_tag.get_text(strip=True)
             if not title:
                 continue
+
+            article_url = title_tag.get("href", "")
 
             # Картинка из карточки
             image_url = ""
@@ -48,25 +68,14 @@ def get_news() -> list[dict]:
                     or ""
                 )
 
+            # Fallback: og:image / twitter:image со страницы статьи
+            if not image_url and article_url:
+                image_url = get_article_image(article_url, _HEADERS)
+
             # Описание
             description = ""
             if desc_tag:
                 description = desc_tag.get_text(strip=True)[:200]
-
-            # URL статьи
-            article_url = link_tag.get("href", "") if link_tag else ""
-
-            # Fallback: og:image со страницы статьи
-            if article_url and not image_url:
-                try:
-                    r = requests.get(article_url, headers=_HEADERS, timeout=5)
-                    r.raise_for_status()
-                    s  = BeautifulSoup(r.text, "lxml")
-                    og = s.find("meta", {"property": "og:image"})
-                    if og:
-                        image_url = og.get("content", "")
-                except Exception:
-                    pass
 
             news.append({
                 "title":       title,

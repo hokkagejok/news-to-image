@@ -14,24 +14,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      # Восстанавливаем кэш опубликованных новостей из предыдущего запуска
-      - name: Restore published news cache
-        uses: actions/cache@v3
         with:
-          path: output/published_news.json
-          key: news-cache-${{ github.run_id }}
-          restore-keys: |
-            news-cache-
+          # Нужен токен с правом push для сохранения message_ids.json
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      # Восстанавливаем ID сообщений Telegram для удаления в начале следующего запуска
-      - name: Restore message ids cache
-        uses: actions/cache@v3
-        with:
-          path: output/message_ids.json
-          key: message-ids-${{ github.run_id }}
-          restore-keys: |
-            message-ids-
+      # Настройка git для коммита message_ids.json
+      - name: Configure git
+        run: |
+          git config user.email "bot@github.com"
+          git config user.name "News Bot"
+
+      # Подтягиваем последние изменения (включая message_ids.json от прошлого запуска)
+      - name: Pull latest changes
+        run: git pull origin main || true
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -44,13 +40,23 @@ jobs:
           pip install \
             requests \
             Pillow \
+            lxml \
+            beautifulsoup4 \
             deep-translator \
-            fpdf2 \
             python-telegram-bot
 
-      # Создаём директорию output заранее (нужна для кэша)
+      # Восстанавливаем кэш опубликованных новостей между запусками
+      - name: Restore published news cache
+        uses: actions/cache@v3
+        with:
+          path: output/published_news.json
+          key: news-cache-${{ github.run_id }}
+          restore-keys: |
+            news-cache-
+
+      # Создаём директорию output заранее
       - name: Prepare output directory
-        run: mkdir -p output/images output/pdf
+        run: mkdir -p output/images
 
       - name: Run news bot
         env:
@@ -58,16 +64,17 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py
 
-      # Сохраняем обновлённый кэш новостей для следующего запуска
+      # Сохраняем message_ids.json в репозиторий через git push
+      # Это гарантирует персистентность между запусками (в отличие от actions/cache)
+      - name: Save message ids to repository
+        run: |
+          git add output/message_ids.json || true
+          git diff --staged --quiet || git commit -m "chore: update message ids [skip ci]"
+          git push || true
+
+      # Сохраняем кэш опубликованных новостей для следующего запуска
       - name: Save published news cache
         uses: actions/cache@v3
         with:
           path: output/published_news.json
           key: news-cache-${{ github.run_id }}
-
-      # Сохраняем новые ID сообщений Telegram для удаления при следующем запуске
-      - name: Save message ids cache
-        uses: actions/cache@v3
-        with:
-          path: output/message_ids.json
-          key: message-ids-${{ github.run_id }}

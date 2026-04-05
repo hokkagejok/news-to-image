@@ -1,10 +1,10 @@
 """
-Парсер новостей с Tuoi Tre (tuoitre.vn) — второе по популярности вьетнамское издание.
+Парсер Tuoi Tre (tuoitre.vn) — второе по популярности вьетнамское издание.
 
 Алгоритм:
-  1. Загружаем главную страницу tuoitre.vn
-  2. Из карточек li.news-item / div.box-category-item берём заголовок,
-     ссылку, описание, картинку
+  1. Загружаем главную страницу
+  2. Берём заголовок, ссылку, описание, картинку из карточки
+  3. Если картинка не найдена — заходим на страницу статьи за og:image / twitter:image
 """
 
 import requests
@@ -12,6 +12,25 @@ from bs4 import BeautifulSoup
 
 _HEADERS  = {"User-Agent": "Mozilla/5.0"}
 _BASE_URL = "https://tuoitre.vn"
+
+
+def get_article_image(url: str, headers: dict) -> str:
+    """Загружает страницу статьи и возвращает og:image или twitter:image."""
+    try:
+        r = requests.get(url, headers=headers, timeout=8)
+        r.raise_for_status()
+        s = BeautifulSoup(r.text, "lxml")
+
+        og = s.find("meta", {"property": "og:image"})
+        if og and og.get("content"):
+            return og.get("content", "")
+
+        tw = s.find("meta", {"name": "twitter:image"})
+        if tw and tw.get("content"):
+            return tw.get("content", "")
+    except Exception:
+        pass
+    return ""
 
 
 def get_news() -> list[dict]:
@@ -39,6 +58,11 @@ def get_news() -> list[dict]:
             if not title:
                 continue
 
+            # URL статьи
+            article_url = title_tag.get("href", "")
+            if article_url and not article_url.startswith("http"):
+                article_url = _BASE_URL + article_url
+
             # Картинка из карточки
             image_url = ""
             if img_tag:
@@ -49,10 +73,9 @@ def get_news() -> list[dict]:
                     or ""
                 )
 
-            # URL статьи
-            article_url = title_tag.get("href", "")
-            if article_url and not article_url.startswith("http"):
-                article_url = _BASE_URL + article_url
+            # Fallback: og:image / twitter:image со страницы статьи
+            if not image_url and article_url:
+                image_url = get_article_image(article_url, _HEADERS)
 
             # Описание
             description = ""
