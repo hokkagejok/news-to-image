@@ -1,0 +1,57 @@
+name: News Bot
+
+on:
+  # Запускать автоматически каждые 6 часов
+  schedule:
+    - cron: "0 */6 * * *"
+  # Разрешить запуск вручную из интерфейса GitHub Actions
+  workflow_dispatch:
+
+jobs:
+  run-news-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Восстанавливаем кэш опубликованных новостей из предыдущего запуска
+      - name: Restore published news cache
+        uses: actions/cache@v3
+        with:
+          path: output/published_news.json
+          key: news-cache-${{ github.run_id }}
+          restore-keys: |
+            news-cache-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install \
+            requests \
+            Pillow \
+            deep-translator \
+            fpdf2 \
+            python-telegram-bot
+
+      # Создаём директорию output заранее (нужна для кэша)
+      - name: Prepare output directory
+        run: mkdir -p output/images output/pdf
+
+      - name: Run news bot
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py
+
+      # Сохраняем обновлённый кэш для следующего запуска
+      - name: Save published news cache
+        uses: actions/cache@v3
+        with:
+          path: output/published_news.json
+          key: news-cache-${{ github.run_id }}

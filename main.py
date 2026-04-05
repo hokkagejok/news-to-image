@@ -1,7 +1,8 @@
 """
 news_to_image — главный модуль.
-Парсит новости → дедуплицирует → переводит на русский → генерирует PNG
-→ создаёт PDF → сохраняет отчёт → отправляет в Telegram.
+Парсит новости → фильтрует кэш → дедуплицирует → переводит на русский
+→ генерирует PNG → создаёт PDF → сохраняет отчёт → отправляет в Telegram
+→ обновляет кэш.
 
 Запуск: python main.py
 """
@@ -24,6 +25,7 @@ from config import (
 from parsers import parse_lenta, parse_ria, parse_bbc
 from generator import create_image
 from telegram_sender import send_all
+from cache_manager import filter_new_news, add_to_cache
 
 # ── Настройки ─────────────────────────────────────────────────────────────────
 
@@ -78,7 +80,7 @@ def collect_all_news() -> list[dict]:
             print(f"  [ОШИБКА] {source_name}: {e}")
         time.sleep(1)
 
-    print(f"\n[Итого до дедупликации] {len(all_news)} новостей.")
+    print(f"\n[Итого до фильтрации] {len(all_news)} новостей.")
     return all_news
 
 
@@ -321,7 +323,6 @@ def save_news_report(news_list: list[dict]) -> None:
     txt_path  = os.path.join(OUTPUT_DIR, "news_report.txt")
     json_path = os.path.join(OUTPUT_DIR, "news_report.json")
 
-    # ── Текстовый отчёт ───────────────────────────────────────────────────────
     lines: list[str] = []
     lines.append(sep_long)
     lines.append(f"ДАЙДЖЕСТ НОВОСТЕЙ — {date_str}")
@@ -364,7 +365,6 @@ def save_news_report(news_list: list[dict]) -> None:
     with open(txt_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
 
-    # ── JSON отчёт ────────────────────────────────────────────────────────────
     json_data = {
         "date":  date_str,
         "time":  time_str,
@@ -391,7 +391,7 @@ def print_summary(
     print("  ГОТОВО")
     print("=" * 60)
     print(f"  Собрано новостей:     {raw_count}")
-    print(f"  После дедупликации:   {unique_count}")
+    print(f"  После фильтрации:     {unique_count}")
     print(f"  Создано изображений:  {images_count}")
     if pdf_path:
         print(f"  PDF сохранён:         {os.path.relpath(pdf_path)}")
@@ -420,28 +420,38 @@ def main() -> None:
         print("\n[ВНИМАНИЕ] Новости не найдены. Проверьте подключение к интернету.")
         sys.exit(1)
 
-    # 3. Дедупликация
+    # 3. Фильтрация по кэшу (убираем уже опубликованные)
+    print("\n" + "=" * 60)
+    print("  ФИЛЬТРАЦИЯ КЭША")
+    print("=" * 60)
+    all_news = filter_new_news(all_news)
+
+    if len(all_news) == 0:
+        print("\n📭 Нет новых новостей для публикации!")
+        sys.exit(0)
+
+    # 4. Дедупликация внутри текущей выборки
     print("\n" + "=" * 60)
     print("  ДЕДУПЛИКАЦИЯ")
     print("=" * 60)
     unique_news = deduplicate(all_news)
 
-    # 4. Перевод на русский (только иноязычные источники)
+    # 5. Перевод на русский (только иноязычные источники)
     unique_news = translate_all_news(unique_news)
 
-    # 5. Генерация изображений
+    # 6. Генерация изображений
     image_paths = generate_images(unique_news)
 
-    # 6. PDF
+    # 7. PDF
     pdf_path = create_pdf(image_paths)
 
-    # 7. Отчёт
+    # 8. Отчёт
     print("\n" + "=" * 60)
     print("  СОХРАНЕНИЕ ОТЧЁТА")
     print("=" * 60)
     save_news_report(unique_news)
 
-    # 8. Отправка в Telegram
+    # 9. Отправка в Telegram
     print("\n" + "=" * 60)
     print("  ОТПРАВКА В TELEGRAM")
     print("=" * 60)
@@ -449,7 +459,15 @@ def main() -> None:
     send_all(unique_news, IMAGES_DIR, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)
     print("✅ Все новости отправлены в Telegram!")
 
-    # 9. Итог
+    # 10. Добавляем отправленные новости в кэш
+    print("\n" + "=" * 60)
+    print("  ОБНОВЛЕНИЕ КЭША")
+    print("=" * 60)
+    for news in unique_news:
+        add_to_cache(news)
+    print(f"[Кэш] Добавлено {len(unique_news)} новостей в output/published_news.json")
+
+    # 11. Итог
     elapsed = time.time() - start
     print(f"\n  Время выполнения: {elapsed:.1f} сек.")
     print_summary(len(all_news), len(unique_news), len(image_paths), pdf_path)
