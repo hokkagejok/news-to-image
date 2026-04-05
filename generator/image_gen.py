@@ -187,55 +187,42 @@ def download_image(url: str) -> Image.Image | None:
 
 def get_unsplash_image(title: str, news_type: str = "world") -> Image.Image | None:
     """
-    Ищет фото на Unsplash по ключевым словам заголовка.
-    Фильтрует стоп-слова, добавляет контекст по типу новости.
-    Пробует 3 варианта URL, проверяет размер ответа (>10 KB).
+    Ищет фото на Unsplash по заголовку новости.
+    Пробует 3 запроса по убыванию специфичности:
+      1. Первые 3 слова заголовка
+      2. Первое слово заголовка
+      3. Общий запрос по типу новости (vietnam city / world news newspaper)
 
-    Возвращает None если все попытки неудачны (→ prepare_background создаст градиент).
+    Возвращает None только если все 3 попытки провалились (→ градиентный фон).
     """
-    words = [
-        w.strip(".,!?:;\"'()-«»")
-        for w in title.lower().split()
-        if w.strip(".,!?:;\"'()-«»") not in _STOP_WORDS
-        and len(w.strip(".,!?:;\"'()-«»")) > 3
-    ]
+    words = [w for w in title.split()[:5] if len(w) > 2]
 
-    primary_query = " ".join(words[:3]) if words else "news"
-    if news_type == "vietnam":
-        primary_query += " vietnam"
+    query1 = urllib.parse.quote(" ".join(words[:3]) if words else "news")
+    query2 = urllib.parse.quote(words[0] if words else "news")
+    query3 = "vietnam+city" if news_type == "vietnam" else "world+news+newspaper"
 
-    fallback_word  = words[0] if words else "news"
+    _ua = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/122.0.0.0 Safari/537.36"
+    )
 
-    urls = [
-        f"https://source.unsplash.com/1080x1920/?{urllib.parse.quote(primary_query)}",
-        f"https://source.unsplash.com/1080x1920/?{urllib.parse.quote(fallback_word)}",
-        "https://source.unsplash.com/1080x1920/?news,world",
-    ]
-
-    for url in urls:
+    for query in [query1, query2, query3]:
+        url = f"https://source.unsplash.com/1080x1920/?{query}"
         try:
             resp = requests.get(
                 url,
-                headers={
-                    "User-Agent": (
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                        "AppleWebKit/537.36 (KHTML, like Gecko) "
-                        "Chrome/122.0.0.0 Safari/537.36"
-                    )
-                },
+                headers={"User-Agent": _ua},
                 timeout=_UNSPLASH_TIMEOUT,
                 allow_redirects=True,
             )
-            if (
-                resp.status_code == 200
-                and len(resp.content) > 10_000
-                and "image" in resp.headers.get("Content-Type", "")
-            ):
+            if resp.status_code == 200 and len(resp.content) > 5_000:
                 img = Image.open(io.BytesIO(resp.content)).convert("RGB")
-                if img.width > 100 and img.height > 100:
+                if img.width > 200 and img.height > 200:
+                    print(f"    [Unsplash] OK: {query[:50]}")
                     return img
         except Exception as e:
-            print(f"    [Unsplash] Ошибка ({url[:60]}): {e}")
+            print(f"    [Unsplash] Ошибка ({query[:40]}): {e}")
             continue
 
     return None

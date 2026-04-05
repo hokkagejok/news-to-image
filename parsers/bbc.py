@@ -206,12 +206,12 @@ def _fetch_article(url: str, hint_title: str) -> dict | None:
         # Не смогли загрузить — возвращаем подсказку без картинки/описания
         if hint_title and len(hint_title) > 10:
             return {
-                "title": hint_title,
-                "image_url": "",
+                "title":       hint_title,
+                "image_url":   "",   # Unsplash подберёт фото по заголовку
                 "description": "",
-                "source": SOURCE_NAME,
-                "type": "world",
-                "url": url,
+                "source":      SOURCE_NAME,
+                "type":        "world",
+                "url":         url,
             }
         return None
 
@@ -231,33 +231,6 @@ def _fetch_article(url: str, hint_title: str) -> dict | None:
     if not title or len(title) < 5:
         return None
 
-    # ── Картинка ───────────────────────────────────────────────────────────────
-    image_url = _meta_content(soup, "og:image") or _meta_content(soup, "twitter:image") or ""
-
-    # Запасной вариант: ищем в теле статьи
-    if not image_url:
-        for selector in [
-            "figure img",
-            "div[data-component='image-block'] img",
-            "picture img",
-            "img",
-        ]:
-            img = soup.select_one(selector)
-            if img:
-                # BBC часто использует srcset
-                srcset = img.get("srcset", "")
-                if srcset:
-                    parts = srcset.split(",")
-                    last  = parts[-1].strip().split()[0]
-                    if last and _is_valid_img(last):
-                        image_url = ("https:" + last) if last.startswith("//") else last
-                        break
-
-                src = img.get("src") or img.get("data-src") or ""
-                if src and _is_valid_img(src):
-                    image_url = ("https:" + src) if src.startswith("//") else src
-                    break
-
     # ── Описание ───────────────────────────────────────────────────────────────
     description = (
         _meta_content(soup, "og:description")
@@ -266,13 +239,15 @@ def _fetch_article(url: str, hint_title: str) -> dict | None:
     )
     description = " ".join(description.split())[:200]
 
+    # image_url намеренно пустой — картинки BBC содержат встроенный логотип.
+    # generate/image_gen.py автоматически найдёт чистое фото через Unsplash.
     return {
-        "title": title,
-        "image_url": image_url,
+        "title":       title,
+        "image_url":   "",
         "description": description,
-        "source": SOURCE_NAME,
-        "type": "world",
-        "url": url,
+        "source":      SOURCE_NAME,
+        "type":        "world",
+        "url":         url,
     }
 
 

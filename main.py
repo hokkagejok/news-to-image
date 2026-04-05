@@ -121,22 +121,6 @@ def collect_all_news() -> list[dict]:
     return all_news
 
 
-# ── Фильтр новостей без фото ─────────────────────────────────────────────────
-
-def filter_news_with_images(news_list: list[dict]) -> list[dict]:
-    """Оставляет только новости с непустым image_url (длина > 10 символов)."""
-    filtered = []
-    skipped  = 0
-    for news in news_list:
-        if news.get("image_url") and len(news["image_url"]) > 10:
-            filtered.append(news)
-        else:
-            skipped += 1
-            print(f"  [SKIP] Нет фото: {news.get('title', '')[:50]}")
-    print(f"[Фильтр фото] С фото: {len(filtered)} | Без фото (пропущено): {skipped}")
-    return filtered
-
-
 # ── Дедупликация ──────────────────────────────────────────────────────────────
 
 def _title_key(title: str) -> str:
@@ -313,16 +297,7 @@ def main() -> None:
         print("\n[ВНИМАНИЕ] Новости не найдены. Проверьте подключение к интернету.")
         sys.exit(1)
 
-    # 3. Фильтр — оставляем только новости с фото
-    print("\n" + "=" * 60)
-    print("  LOC ANH / ФИЛЬТР НОВОСТЕЙ БЕЗ ФОТО")
-    print("=" * 60)
-    all_news = filter_news_with_images(all_news)
-    if not all_news:
-        print("\n[ВНИМАНИЕ] Нет новостей с фото.")
-        sys.exit(1)
-
-    # 5. Фильтрация по кэшу
+    # 3. Фильтрация по кэшу
     print("\n" + "=" * 60)
     print("  LOC CACHE / ФИЛЬТРАЦИЯ КЭША")
     print("=" * 60)
@@ -332,26 +307,26 @@ def main() -> None:
         print("\n[INFO] Khong co tin moi! / Нет новых новостей!")
         sys.exit(0)
 
-    # 6. Дедупликация
+    # 4. Дедупликация
     print("\n" + "=" * 60)
     print("  LOC TRUNG LAP / ДЕДУПЛИКАЦИЯ")
     print("=" * 60)
     unique_news = deduplicate(all_news)
 
-    # 7. Перевод на вьетнамский (VnExpress / Tuoi Tre / Dan Tri — пропускаются)
+    # 5. Перевод на вьетнамский (VnExpress / Tuoi Tre / Dan Tri — пропускаются)
     unique_news = translate_all_news(unique_news)
 
-    # 8. Генерация изображений (два стиля: world / vietnam)
+    # 6. Генерация изображений (два стиля: world / vietnam)
     image_paths = generate_images(unique_news)
 
-    # 9. Генерация баннеров
+    # 7. Генерация баннеров
     print("\n" + "=" * 60)
     print("  TAO BANNER / СОЗДАНИЕ БАННЕРОВ")
     print("=" * 60)
     create_intro_banner(date_vi, len(unique_news), INTRO_PATH)
     create_subscribe_banner(BANNER_PATH)
 
-    # 10. Отправка в Telegram: удалить старые → интро → новости → подписка
+    # 8. Отправка в Telegram: удалить старые → интро → новости → подписка
     print("\n" + "=" * 60)
     print("  GUI TELEGRAM / ОТПРАВКА В TELEGRAM")
     print("=" * 60)
@@ -368,7 +343,7 @@ def main() -> None:
         intro_caption=intro_caption,
     )
 
-    # 11. Обновление кэша
+    # 9. Обновление кэша
     print("\n" + "=" * 60)
     print("  CAP NHAT CACHE / ОБНОВЛЕНИЕ КЭША")
     print("=" * 60)
@@ -376,7 +351,7 @@ def main() -> None:
         add_to_cache(news)
     print(f"[Кэш] Добавлено {len(unique_news)} новостей в output/published_news.json")
 
-    # 12. Итог
+    # 10. Итог
     elapsed = time.time() - start
     print(f"\n  Thoi gian thuc hien: {elapsed:.1f} giay")
     print_summary(len(all_news), len(unique_news), len(image_paths))
