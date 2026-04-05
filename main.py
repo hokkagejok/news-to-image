@@ -27,7 +27,7 @@ from config import (
 from parsers import parse_lenta, parse_ria, parse_bbc, parse_vnexpress
 from generator import create_image
 from generator.image_gen import create_intro_banner, create_subscribe_banner
-from telegram_sender import send_all, send_banner
+from telegram_sender import send_all
 from cache_manager import filter_new_news, add_to_cache
 
 # ── Настройки ─────────────────────────────────────────────────────────────────
@@ -477,32 +477,29 @@ def main() -> None:
     print("=" * 60)
     save_news_report(unique_news)
 
-    # 9. Вступительный баннер — отправляется ПЕРВЫМ
+    # 9. Генерация баннеров (только создание PNG, без отправки)
     print("\n" + "=" * 60)
-    print("  BANNER GIOI THIEU / ВСТУПИТЕЛЬНЫЙ БАННЕР")
+    print("  TAO BANNER / СОЗДАНИЕ БАННЕРОВ")
     print("=" * 60)
     create_intro_banner(date_vi, len(unique_news), INTRO_PATH)
+    create_subscribe_banner(BANNER_PATH)
+
+    # 10. Отправка в Telegram: удалить старые → интро → новости → подписка
+    print("\n" + "=" * 60)
+    print("  GUI TELEGRAM / ОТПРАВКА В TELEGRAM")
+    print("=" * 60)
     intro_caption = (
         f"🗞 Chao buoi sang! Hom nay {date_vi}\n\n"
         f"⚡️ {len(unique_news)} tin tuc chinh trong ngay\n\n"
         f"📲 @todayrealnews"
     )
-    send_banner(INTRO_PATH, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, caption=intro_caption)
-
-    # 10. Отправка всех новостей в Telegram
-    print("\n" + "=" * 60)
-    print("  GUI TELEGRAM / ОТПРАВКА НОВОСТЕЙ")
-    print("=" * 60)
-    print("📤 Отправка новостей в Telegram...")
-    send_all(unique_news, IMAGES_DIR, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)
-    print("✅ Все новости отправлены в Telegram!")
-
-    # 11. Баннер подписки — отправляется ПОСЛЕДНИМ
-    print("\n" + "=" * 60)
-    print("  BANNER DANG KY / БАННЕР ПОДПИСКИ")
-    print("=" * 60)
-    create_subscribe_banner(BANNER_PATH)
-    send_banner(BANNER_PATH, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)
+    send_all(
+        unique_news,
+        IMAGES_DIR,
+        TELEGRAM_BOT_TOKEN,
+        TELEGRAM_CHAT_ID,
+        intro_caption=intro_caption,
+    )
 
     # 12. Обновление кэша
     print("\n" + "=" * 60)

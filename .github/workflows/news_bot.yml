@@ -24,6 +24,15 @@ jobs:
           restore-keys: |
             news-cache-
 
+      # Восстанавливаем ID сообщений Telegram для удаления в начале следующего запуска
+      - name: Restore message ids cache
+        uses: actions/cache@v3
+        with:
+          path: output/message_ids.json
+          key: message-ids-${{ github.run_id }}
+          restore-keys: |
+            message-ids-
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -49,9 +58,16 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py
 
-      # Сохраняем обновлённый кэш для следующего запуска
+      # Сохраняем обновлённый кэш новостей для следующего запуска
       - name: Save published news cache
         uses: actions/cache@v3
         with:
           path: output/published_news.json
           key: news-cache-${{ github.run_id }}
+
+      # Сохраняем новые ID сообщений Telegram для удаления при следующем запуске
+      - name: Save message ids cache
+        uses: actions/cache@v3
+        with:
+          path: output/message_ids.json
+          key: message-ids-${{ github.run_id }}
