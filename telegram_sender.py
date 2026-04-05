@@ -235,9 +235,25 @@ async def _run_full_pipeline(
     else:
         print(f"[Telegram] ⚠️ Баннер подписки не найден: {subscribe_path}")
 
-    # ── Шаг 5: Сохранить новые ID ─────────────────────────────────────────────
+    # ── Шаг 5: Хэштеги ───────────────────────────────────────────────────────
+    print("\n[Telegram] ── Шаг 5: Хэштеги ──")
+    hashtag_text = (
+        "#новости #news #worldnews #мировыеновости\n"
+        "#breakingnews #todayrealnews #политика\n"
+        "#главноесегодня #trending #срочно\n"
+        "#tintuc #tintucmoinhat #tintuchomay\n"
+        "#vietnamnews #todayrealnews"
+    )
+    try:
+        msg = await bot.send_message(chat_id=chat_id, text=hashtag_text)
+        new_ids.append(msg.message_id)
+        print("[Telegram] [OK] Хэштеги отправлены")
+    except Exception as e:
+        print(f"[Telegram] Ошибка хэштегов: {e}")
+
+    # ── Шаг 6: Сохранить новые ID ─────────────────────────────────────────────
     save_message_ids(new_ids)
-    print(f"\n[Telegram] ✅ Сохранено {len(new_ids)} ID сообщений → {MESSAGE_IDS_FILE}")
+    print(f"\n[Telegram] Сохранено {len(new_ids)} ID сообщений → {MESSAGE_IDS_FILE}")
 
     return sent_news
 

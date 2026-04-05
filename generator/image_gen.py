@@ -280,12 +280,36 @@ def prepare_background(
     offset_y = (target_h - new_h) // 2
     bg.paste(img_resized, (offset_x, offset_y))
 
-    # Скрываем логотип BBC и другие ватермарки — закрашиваем нижние 80px
-    draw_bg = ImageDraw.Draw(bg)
-    draw_bg.rectangle(
-        [(0, target_h - 80), (target_w, target_h)],
-        fill=(0, 0, 0),
-    )
+    # Скрываем логотип BBC и другие ватермарки
+    bg = _remove_logo_area(bg, target_w, target_h)
+
+    return bg
+
+
+def _remove_logo_area(bg: Image.Image, target_w: int, target_h: int) -> Image.Image:
+    """
+    Скрывает логотип/ватермарку в нижней части картинки.
+
+    Алгоритм:
+      1. Берём полоску чистого контента чуть выше зоны логотипа.
+      2. Растягиваем её на зону логотипа (нижние 12% высоты).
+      3. Дополнительно размываем зону логотипа для естественности.
+    """
+    logo_h  = int(target_h * 0.12)          # высота зоны логотипа
+    clean_y = target_h - logo_h - 20        # строка чуть выше логотипа
+
+    # Вырезаем полоску чистого контента (40px) выше логотипа
+    strip_top = max(0, clean_y - 40)
+    clean_strip = bg.crop((0, strip_top, target_w, clean_y))
+
+    # Растягиваем полоску на всю зону логотипа
+    clean_strip = clean_strip.resize((target_w, logo_h + 20), Image.LANCZOS)
+    bg.paste(clean_strip, (0, target_h - logo_h - 20))
+
+    # Дополнительно размываем зону для маскировки артефактов
+    logo_zone = bg.crop((0, target_h - logo_h, target_w, target_h))
+    logo_zone = logo_zone.filter(ImageFilter.GaussianBlur(radius=15))
+    bg.paste(logo_zone, (0, target_h - logo_h))
 
     return bg
 
