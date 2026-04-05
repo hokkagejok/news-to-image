@@ -1,7 +1,8 @@
 """
 news_to_image — главный модуль.
 Парсит новости → фильтрует кэш → дедуплицирует → переводит на русский
-→ генерирует PNG → создаёт PDF → сохраняет отчёт → отправляет в Telegram
+→ генерирует PNG → создаёт PDF → сохраняет отчёт
+→ отправляет новости в Telegram → отправляет баннер подписки
 → обновляет кэш.
 
 Запуск: python main.py
@@ -24,7 +25,8 @@ from config import (
 )
 from parsers import parse_lenta, parse_ria, parse_bbc
 from generator import create_image
-from telegram_sender import send_all
+from generator.image_gen import create_subscribe_banner
+from telegram_sender import send_all, send_banner
 from cache_manager import filter_new_news, add_to_cache
 
 # ── Настройки ─────────────────────────────────────────────────────────────────
@@ -37,6 +39,9 @@ TRANSLATE_DELAY = 0.3
 
 # Источники, чьи заголовки/описания уже на русском — пропускаем перевод
 RUSSIAN_SOURCES = {"Lenta.ru", "RIA Novosti"}
+
+# Путь к файлу баннера подписки
+BANNER_PATH = os.path.join(IMAGES_DIR, "000_subscribe_banner.png")
 
 
 # ── Вспомогательные ───────────────────────────────────────────────────────────
@@ -451,15 +456,22 @@ def main() -> None:
     print("=" * 60)
     save_news_report(unique_news)
 
-    # 9. Отправка в Telegram
+    # 9. Отправка новостей в Telegram
     print("\n" + "=" * 60)
-    print("  ОТПРАВКА В TELEGRAM")
+    print("  ОТПРАВКА НОВОСТЕЙ В TELEGRAM")
     print("=" * 60)
-    print("📤 Отправка в Telegram...")
+    print("📤 Отправка новостей в Telegram...")
     send_all(unique_news, IMAGES_DIR, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)
     print("✅ Все новости отправлены в Telegram!")
 
-    # 10. Добавляем отправленные новости в кэш
+    # 10. Генерация и отправка баннера подписки
+    print("\n" + "=" * 60)
+    print("  БАННЕР ПОДПИСКИ")
+    print("=" * 60)
+    create_subscribe_banner(BANNER_PATH)
+    send_banner(BANNER_PATH, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)
+
+    # 11. Добавляем опубликованные новости в кэш
     print("\n" + "=" * 60)
     print("  ОБНОВЛЕНИЕ КЭША")
     print("=" * 60)
@@ -467,7 +479,7 @@ def main() -> None:
         add_to_cache(news)
     print(f"[Кэш] Добавлено {len(unique_news)} новостей в output/published_news.json")
 
-    # 11. Итог
+    # 12. Итог
     elapsed = time.time() - start
     print(f"\n  Время выполнения: {elapsed:.1f} сек.")
     print_summary(len(all_news), len(unique_news), len(image_paths), pdf_path)

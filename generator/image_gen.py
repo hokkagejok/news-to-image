@@ -448,3 +448,89 @@ def _get_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
 def _has_image_ext(url: str) -> bool:
     base = url.lower().split("?")[0]
     return any(base.endswith(e) for e in (".jpg", ".jpeg", ".png", ".webp", ".gif"))
+
+
+# ── Баннер подписки ───────────────────────────────────────────────────────────
+
+def create_subscribe_banner(output_path: str) -> str:
+    """
+    Создаёт финальный рекламный баннер «Подпишись на канал» в формате TikTok (1080×1920).
+    Возвращает путь к сохранённому файлу.
+    """
+    W, H = 1080, 1920
+
+    img  = Image.new("RGB", (W, H), (0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    # Градиентный фон: тёмно-синий сверху → чёрный снизу
+    for y in range(H):
+        ratio = y / H
+        r = int(5  + 10 * (1 - ratio))
+        g = int(5  + 15 * (1 - ratio))
+        b = int(20 + 60 * (1 - ratio))
+        draw.line([(0, y), (W, y)], fill=(r, g, b))
+
+    # Декоративные полупрозрачные круги на фоне
+    for _ in range(8):
+        cx = random.randint(0, W)
+        cy = random.randint(0, H)
+        cr = random.randint(100, 400)
+        draw.ellipse(
+            [cx - cr, cy - cr, cx + cr, cy + cr],
+            fill=None,
+            outline=(255, 50, 50),
+        )
+
+    # Шрифты
+    font_big   = _get_font(90, bold=True)
+    font_med   = _get_font(55, bold=True)
+    font_small = _get_font(40, bold=False)
+
+    # Красный круг-иконка сверху
+    icon_y = 400
+    icon_r = 110
+    draw.ellipse(
+        [W // 2 - icon_r, icon_y - icon_r, W // 2 + icon_r, icon_y + icon_r],
+        fill=(220, 30, 30),
+    )
+    # Символ газеты внутри круга
+    draw.text((W // 2, icon_y), "📰", font=font_big, anchor="mm", fill=(255, 255, 255))
+
+    # Горизонтальный разделитель под иконкой
+    draw.rectangle([(100, icon_y + icon_r + 50), (W - 100, icon_y + icon_r + 55)], fill=(220, 30, 30))
+
+    # Главный текст
+    text_blocks = [
+        ("СЛЕДИ ЗА",   font_med, (180, 180, 180), 720),
+        ("МИРОВЫМИ",   font_big, (255, 255, 255), 840),
+        ("НОВОСТЯМИ",  font_big, (255, 255, 255), 960),
+        ("ПЕРВЫМ!",    font_big, (220,  30,  30), 1090),
+    ]
+    for text, font, color, y in text_blocks:
+        # Тень
+        draw.text((W // 2 + 3, y + 3), text, font=font, anchor="mm", fill=(0, 0, 0))
+        draw.text((W // 2, y),          text, font=font, anchor="mm", fill=color)
+
+    # Горизонтальный разделитель перед кнопкой
+    draw.rectangle([(100, 1210), (W - 100, 1215)], fill=(220, 30, 30))
+
+    # Кнопка «ПОДПИСАТЬСЯ»
+    btn_y = 1340
+    draw.rounded_rectangle(
+        [150, btn_y - 65, W - 150, btn_y + 65],
+        radius=42,
+        fill=(220, 30, 30),
+    )
+    draw.text((W // 2, btn_y), "👆 ПОДПИСАТЬСЯ", font=font_med, anchor="mm", fill=(255, 255, 255))
+
+    # Название канала
+    draw.text((W // 2, 1490), "@todayrealnews", font=font_med, anchor="mm", fill=(255, 255, 255))
+
+    # Подпись снизу
+    draw.text((W // 2, 1660), "Актуальные новости",     font=font_small, anchor="mm", fill=(150, 150, 150))
+    draw.text((W // 2, 1720), "каждый день в 10:00",    font=font_small, anchor="mm", fill=(150, 150, 150))
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    img.save(output_path, "PNG", optimize=True)
+    print(f"    ✅ Баннер подписки создан: {output_path}")
+    return output_path
