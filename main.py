@@ -203,6 +203,11 @@ def filter_relevant_news(news_list: list[dict]) -> list[dict]:
         result += other_news[:needed]
         print(f"[Фильтр] Добавлено других новостей: {min(needed, len(other_news))}")
 
+    # Если всё равно меньше MIN (мало новостей совсем) — берём всё что есть
+    if len(result) < _MIN_NEWS:
+        print(f"[Фильтр] Меньше {_MIN_NEWS} новостей — возвращаем все {len(news_list)} без фильтра.")
+        return news_list[:_MAX_NEWS]
+
     # Обрезать до максимума
     result = result[:_MAX_NEWS]
 

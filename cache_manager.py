@@ -62,9 +62,14 @@ def add_to_cache(news_item: dict) -> None:
     save_cache(cache)
 
 
+_MIN_NEW = 12
+
+
 def filter_new_news(news_list: list[dict]) -> list[dict]:
     """
     Возвращает только те новости, которых ещё нет в кэше.
+    Если новых меньше _MIN_NEW — возвращает весь список (игнорирует кэш),
+    чтобы гарантировать минимальный выпуск.
     Выводит в консоль статистику: сколько новых, сколько пропущено.
     """
     cache = load_cache()
@@ -75,9 +80,14 @@ def filter_new_news(news_list: list[dict]) -> list[dict]:
         title = news.get("title", "")
         if is_already_published(title, cache):
             skipped += 1
-            print(f"  ⏭️  Пропускаем (уже публиковалось): {title[:60]}")
+            print(f"  Пропускаем (уже публиковалось): {title[:60]}")
         else:
             new_news.append(news)
 
-    print(f"\n  ✅ Новых новостей: {len(new_news)} | Пропущено дублей кэша: {skipped}")
+    print(f"\n  Новых новостей: {len(new_news)} | Пропущено дублей кэша: {skipped}")
+
+    if len(new_news) < _MIN_NEW:
+        print(f"  [Кэш] Новых < {_MIN_NEW} — используем все {len(news_list)} новостей без фильтра кэша.")
+        return news_list
+
     return new_news

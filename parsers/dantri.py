@@ -42,7 +42,7 @@ def get_news() -> list[dict]:
         res.raise_for_status()
         soup = BeautifulSoup(res.text, "lxml")
 
-        articles = soup.select("article.article-item")[:10]
+        articles = soup.select("article.article-item")[:15]
 
         for item in articles:
             title_tag = item.select_one("h3 a, h2 a")
