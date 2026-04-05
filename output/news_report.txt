@@ -94,95 +94,59 @@ Lien ket:  https://www.bbc.com/news/articles/ckgxdn9lyd2o
 
 TIN #11 [VIETNAM]
 ------------------------------------------------------------
-Tieu de:   Cho đồng nghiệp vay tiền còn bị vu cáo vào nhà họ ăn trộm
+Tieu de:   Voi rừng phá rào thép, xông vào trường học ở Sơn La
 Nguon:     VnExpress
-Mo ta:     Mãi chị không trả, tôi làm dữ, liền bị vợ chồng chị vu cáo, dùng thủ đoạn hù dọa, nói tôi vào nhà trộm của chị 5.200 USD.
-Hinh anh:  output\images\011_VnExpress_Cho đồng nghiệp vay tiền còn bị vu cáo vào nhà họ ăn trộm.png
-Lien ket:  https://vnexpress.net/cho-dong-nghiep-vay-tien-con-bi-vu-cao-vao-nha-ho-an-trom-5058735.html
+Mo ta:     Camera ghi lại cảnh một cá thể voi rừng nặng hơn hai tấn phá rào thép, xâm nhập vào Trường phổ thông dân tộc bán trú THCS Huổi Một lúc rạng sáng.
+Hinh anh:  output\images\011_VnExpress_Voi rừng phá rào thép, xông vào trường học ở Sơn La.png
+Lien ket:  https://vnexpress.net/voi-rung-pha-rao-thep-xong-vao-truong-hoc-o-son-la-5058798.html
 ------------------------------------------------------------
 
 TIN #12 [VIETNAM]
 ------------------------------------------------------------
-Tieu de:   Cựu Hoa hậu Hàn Quốc giảm cân thành công 16 kg
+Tieu de:   Sự cố dai dẳng với nhà vệ sinh 23 triệu USD của Artemis II
 Nguon:     VnExpress
-Mo ta:     Từng được chẩn đoán tiền tiểu đường, Kim Ji-yeon giảm thành công từ 75 kg xuống 59 kg trong 5 tháng nhờ ăn uống điều độ và cải thiện chất lượng giấc ngủ ở tuổi 48.
-Hinh anh:  output\images\012_VnExpress_Cựu Hoa hậu Hàn Quốc giảm cân thành công 16 kg.png
-Lien ket:  https://vnexpress.net/cuu-hoa-hau-han-quoc-giam-can-thanh-cong-16-kg-5058503.html
+Mo ta:     Nhà vệ sinh trên tàu Orion tiếp tục gặp trục trặc trong ngày thứ ba trên hành trình đến Mặt Trăng.
+Hinh anh:  output\images\012_VnExpress_Sự cố dai dẳng với nhà vệ sinh 23 triệu USD của Artemis II.png
+Lien ket:  https://vnexpress.net/su-co-dai-dang-voi-nha-ve-sinh-23-trieu-usd-cua-artemis-ii-5058762.html
 ------------------------------------------------------------
 
 TIN #13 [VIETNAM]
 ------------------------------------------------------------
-Tieu de:   Barca có thể đăng quang La Liga ngay trận Kinh điển
+Tieu de:   5 lý do chọn VM Green Paradise Cần Giờ để du lịch chạy bộ
 Nguon:     VnExpress
-Mo ta:     Để kịch bản này thành hiện thực, Barca chỉ cần duy trì khoảng cách 7 điểm hiện tại cho đến trận đại chiến với Real Madrid ngày 11/5 và đánh bại chính đối thủ ngay tại sân nhà Camp Nou.
-Hinh anh:  output\images\013_VnExpress_Barca có thể đăng quang La Liga ngay trận Kinh điển.png
-Lien ket:  https://vnexpress.net/barca-co-the-dang-quang-la-liga-ngay-tran-kinh-dien-5058768.html
+Mo ta:     Từ cung đường xanh đến trải nghiệm du lịch sinh thái, VnExpress Marathon Green Paradise Cần Giờ hội nhiều yếu tố để trở thành điểm race-cation trọn vẹn cho runner.
+Hinh anh:  output\images\013_VnExpress_5 lý do chọn VM Green Paradise Cần Giờ để du lịch chạy bộ.png
+Lien ket:  https://vnexpress.net/5-ly-do-chon-vm-green-paradise-can-gio-de-du-lich-chay-bo-5058759.html
 ------------------------------------------------------------
 
 TIN #14 [VIETNAM]
 ------------------------------------------------------------
-Tieu de:   Tạ Minh Tâm vui thú điền viên
+Tieu de:   Trung tâm hành chính mới TP HCM phục vụ tối đa 15.000 người
 Nguon:     VnExpress
-Mo ta:     Nghệ sĩ Tạ Minh Tâm, 66 tuổi, dựng chòi câu cá, trồng cây, hoa tại nhà vườn 3.000 m2 ở Long An (Tây Ninh mới).
-Hinh anh:  output\images\014_VnExpress_Tạ Minh Tâm vui thú điền viên.png
-Lien ket:  https://vnexpress.net/ta-minh-tam-vui-thu-dien-vien-5058757.html
+Mo ta:     Khu trung tâm chính trị - hành chính - văn hóa kết hợp công viên hồ trung tâm tại đô thị mới Thủ Thiêm rộng hơn 33 ha, phục vụ tối đa khoảng 15.000 người.
+Hinh anh:  output\images\014_VnExpress_Trung tâm hành chính mới TP HCM phục vụ tối đa 15.000 người.png
+Lien ket:  https://vnexpress.net/trung-tam-hanh-chinh-moi-tp-hcm-phuc-vu-toi-da-15-000-nguoi-5058794.html
 ------------------------------------------------------------
 
 TIN #15 [VIETNAM]
 ------------------------------------------------------------
-Tieu de:   Ôtô chở ba người lật sau tai nạn ở TP HCM
+Tieu de:   Điểm tin 17h: Mỹ 'giải cứu thành công' phi công trên tiêm kích F-15 bị bắn hạ | Mỹ tuyên bố bắt người thân của tướng Iran
 Nguon:     VnExpress
-Mo ta:     Ôtô chở ba người trong gia đình chạy trên quốc lộ 55 tông vào xe đậu bên lề, lao thêm 20 m rồi lật nghiêng bên đường, người dân phá cửa đưa các nạn nhân ra ngoài, trưa 5/4.
-Hinh anh:  output\images\015_VnExpress_Ôtô chở ba người lật sau tai nạn ở TP HCM.png
-Lien ket:  https://vnexpress.net/oto-cho-ba-nguoi-lat-sau-tai-nan-o-tp-hcm-5058779.html
+Mo ta:     Iran dọa 'mở cổng địa ngục' với Mỹ, Israel; Dự án sinh thái biển cao cấp Lạc Việt bị nghi lừa dối khách hàng;..
+Hinh anh:  output\images\015_VnExpress_Điểm tin 17h_ Mỹ 'giải cứu thành công' phi công trên tiêm kí.png
+Lien ket:  https://vnexpress.net/diem-tin-17h-my-giai-cuu-thanh-cong-phi-cong-tren-tiem-kich-f-15-bi-ban-ha-my-tuyen-bo-bat-nguoi-than-cua-tuong-iran-5058795.html
 ------------------------------------------------------------
 
 TIN #16 [VIETNAM]
 ------------------------------------------------------------
-Tieu de:   Iran tuyên bố bắn hạ ba máy bay Mỹ tham gia tìm phi công
+Tieu de:   Bệnh viện Bạch Mai vận hành hai hệ thống chụp CT phát hiện sớm ung thư
 Nguon:     VnExpress
-Mo ta:     Quân đội Iran tuyên bố lực lượng nước này bắn hạ hai trực thăng và một máy bay C-130 tham gia chiến dịch tìm kiếm phi công Mỹ.
-Hinh anh:  output\images\016_VnExpress_Iran tuyên bố bắn hạ ba máy bay Mỹ tham gia tìm phi công.png
-Lien ket:  https://vnexpress.net/iran-tuyen-bo-ban-ha-ba-may-bay-my-tham-gia-tim-phi-cong-5058773.html
-------------------------------------------------------------
-
-TIN #17 [VIETNAM]
-------------------------------------------------------------
-Tieu de:   'Tuổi già dễ thở hơn khi lương hưu không phải gánh thuế'
-Nguon:     VnExpress
-Mo ta:     Khoản lương hưu nhỏ mỗi tháng khiến bố mẹ tôi phải cân nhắc từng đồng chi tiêu để duy trì cuộc sống tuổi già.
-Hinh anh:  output\images\017_VnExpress_'Tuổi già dễ thở hơn khi lương hưu không phải gánh thuế'.png
-Lien ket:  https://vnexpress.net/tuoi-gia-de-tho-hon-khi-luong-huu-khong-phai-ganh-thue-5058733.html
-------------------------------------------------------------
-
-TIN #18 [VIETNAM]
-------------------------------------------------------------
-Tieu de:   Phi hành gia Artemis II ăn gì trên tàu vũ trụ?
-Nguon:     VnExpress
-Mo ta:     Trong 10 ngày du hành Mặt Trăng và trở về Trái Đất, các phi hành gia Artemis II thưởng thức tới 189 món ăn và hơn 10 loại đồ uống.
-Hinh anh:  output\images\018_VnExpress_Phi hành gia Artemis II ăn gì trên tàu vũ trụ_.png
-Lien ket:  https://vnexpress.net/phi-hanh-gia-artemis-ii-an-gi-tren-tau-vu-tru-5058711.html
-------------------------------------------------------------
-
-TIN #19 [VIETNAM]
-------------------------------------------------------------
-Tieu de:   Tài xế kể khoảnh khắc cứu bé gái 2 tuổi tự băng qua quốc lộ
-Nguon:     VnExpress
-Mo ta:     Trên đường lái xe từ TP Huế vào Đà Nẵng, anh Lý Văn Tố phát hiện bé gái 2 tuổi tự băng qua quốc lộ 1A và kịp thời chạy đến đưa cháu vào nơi an toàn.
-Hinh anh:  output\images\019_VnExpress_Tài xế kể khoảnh khắc cứu bé gái 2 tuổi tự băng qua quốc lộ.png
-Lien ket:  https://vnexpress.net/tai-xe-ke-khoanh-khac-cuu-be-gai-2-tuoi-tu-bang-qua-quoc-lo-5058756.html
-------------------------------------------------------------
-
-TIN #20 [VIETNAM]
-------------------------------------------------------------
-Tieu de:   Thủ môn đấm khán giả ở Anh
-Nguon:     VnExpress
-Mo ta:     Thủ môn Joe Wright của Enfield Town đấm vào một khán giả đối phương ngay trong trận gặp chủ nhà Chelmsford City ở giải hạng Sáu tối 4/4.
-Hinh anh:  output\images\020_VnExpress_Thủ môn đấm khán giả ở Anh.png
-Lien ket:  https://vnexpress.net/thu-mon-dam-khan-gia-o-anh-5058727.html
+Mo ta:     Bệnh viện Bạch Mai vận hành hai hệ thống chụp cắt lớp vi tính lượng tử (CT đếm photon), có khả năng loại bỏ nhiễu tín hiệu điện tử phát hiện sớm tổn thương rất nhỏ.
+Hinh anh:  output\images\016_VnExpress_Bệnh viện Bạch Mai vận hành hai hệ thống chụp CT phát hiện s.png
+Lien ket:  https://vnexpress.net/benh-vien-bach-mai-van-hanh-hai-he-thong-chup-ct-phat-hien-som-ung-thu-5058774.html
 ------------------------------------------------------------
 
 ============================================================
-TONG CONG: 20 tin tuc
-Tao luc: 05.04.2026 luc 13:59
+TONG CONG: 16 tin tuc
+Tao luc: 05.04.2026 luc 14:19
 ============================================================

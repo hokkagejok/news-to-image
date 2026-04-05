@@ -250,8 +250,13 @@ def prepare_background(
 ) -> Image.Image:
     """
     Если img=None — генерирует тёмный градиентный фон.
-    Иначе — cover-resize: масштабирует картинку чтобы заполнить весь холст,
-    обрезает лишнее по центру. Пропорции сохраняются.
+    Иначе — COVER-resize: масштабирует картинку так, чтобы она полностью
+    заполнила холст (без чёрных полос), затем обрезает лишнее по центру.
+
+    Режим COVER:
+      - Если исходник шире цели (16:9 → 9:16) — масштабируем по высоте.
+      - Если исходник уже цели                  — масштабируем по ширине.
+    После масштабирования гарантируем, что оба измерения >= target.
     """
     if img is None:
         return create_gradient_bg(target_w, target_h)
@@ -259,22 +264,46 @@ def prepare_background(
     if img.mode != "RGB":
         img = img.convert("RGB")
 
-    img_ratio    = img.width  / img.height
-    target_ratio = target_w   / target_h
+    src_w, src_h = img.size
+    src_ratio    = src_w / src_h
+    dst_ratio    = target_w / target_h
 
-    if img_ratio > target_ratio:
-        # Картинка шире — подгоняем по высоте
-        new_h = target_h
-        new_w = int(new_h * img_ratio)
+    # COVER: выбираем масштаб так, чтобы картинка заполнила весь холст
+    if src_ratio > dst_ratio:
+        # Исходник шире — масштабируем по высоте
+        scale = target_h / src_h
     else:
-        # Картинка уже — подгоняем по ширине
-        new_w = target_w
-        new_h = int(new_w / img_ratio)
+        # Исходник уже — масштабируем по ширине
+        scale = target_w / src_w
 
-    img  = img.resize((new_w, new_h), Image.LANCZOS)
-    left = (new_w - target_w) // 2
-    top  = (new_h - target_h) // 2
-    return img.crop((left, top, left + target_w, top + target_h))
+    new_w = int(src_w * scale)
+    new_h = int(src_h * scale)
+
+    # Страховка: ни одна из сторон не должна быть меньше target
+    if new_w < target_w:
+        scale = target_w / src_w
+        new_w = target_w
+        new_h = int(src_h * scale)
+    if new_h < target_h:
+        scale = target_h / src_h
+        new_h = target_h
+        new_w = int(src_w * scale)
+
+    img = img.resize((new_w, new_h), Image.LANCZOS)
+
+    # Обрезаем по центру
+    left   = max(0, (new_w - target_w) // 2)
+    top    = max(0, (new_h - target_h) // 2)
+    right  = left + target_w
+    bottom = top  + target_h
+
+    img = img.crop((left, top, right, bottom))
+
+    # Финальный resize на случай погрешности округления
+    if img.size != (target_w, target_h):
+        img = img.resize((target_w, target_h), Image.LANCZOS)
+
+    return img
 
 
 def create_gradient_bg(w: int, h: int) -> Image.Image:

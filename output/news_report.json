@@ -1,7 +1,7 @@
 {
   "date": "05.04.2026",
-  "time": "13:59",
-  "total": 20,
+  "time": "14:19",
+  "total": 16,
   "news": [
     {
       "number": 1,
@@ -95,93 +95,57 @@
     },
     {
       "number": 11,
-      "title": "Cho đồng nghiệp vay tiền còn bị vu cáo vào nhà họ ăn trộm",
+      "title": "Voi rừng phá rào thép, xông vào trường học ở Sơn La",
       "source": "VnExpress",
       "type": "vietnam",
-      "description": "Mãi chị không trả, tôi làm dữ, liền bị vợ chồng chị vu cáo, dùng thủ đoạn hù dọa, nói tôi vào nhà trộm của chị 5.200 USD.",
-      "image_path": "output\\images\\011_VnExpress_Cho đồng nghiệp vay tiền còn bị vu cáo vào nhà họ ăn trộm.png",
-      "url": "https://vnexpress.net/cho-dong-nghiep-vay-tien-con-bi-vu-cao-vao-nha-ho-an-trom-5058735.html"
+      "description": "Camera ghi lại cảnh một cá thể voi rừng nặng hơn hai tấn phá rào thép, xâm nhập vào Trường phổ thông dân tộc bán trú THCS Huổi Một lúc rạng sáng.",
+      "image_path": "output\\images\\011_VnExpress_Voi rừng phá rào thép, xông vào trường học ở Sơn La.png",
+      "url": "https://vnexpress.net/voi-rung-pha-rao-thep-xong-vao-truong-hoc-o-son-la-5058798.html"
     },
     {
       "number": 12,
-      "title": "Cựu Hoa hậu Hàn Quốc giảm cân thành công 16 kg",
+      "title": "Sự cố dai dẳng với nhà vệ sinh 23 triệu USD của Artemis II",
       "source": "VnExpress",
       "type": "vietnam",
-      "description": "Từng được chẩn đoán tiền tiểu đường, Kim Ji-yeon giảm thành công từ 75 kg xuống 59 kg trong 5 tháng nhờ ăn uống điều độ và cải thiện chất lượng giấc ngủ ở tuổi 48.",
-      "image_path": "output\\images\\012_VnExpress_Cựu Hoa hậu Hàn Quốc giảm cân thành công 16 kg.png",
-      "url": "https://vnexpress.net/cuu-hoa-hau-han-quoc-giam-can-thanh-cong-16-kg-5058503.html"
+      "description": "Nhà vệ sinh trên tàu Orion tiếp tục gặp trục trặc trong ngày thứ ba trên hành trình đến Mặt Trăng.",
+      "image_path": "output\\images\\012_VnExpress_Sự cố dai dẳng với nhà vệ sinh 23 triệu USD của Artemis II.png",
+      "url": "https://vnexpress.net/su-co-dai-dang-voi-nha-ve-sinh-23-trieu-usd-cua-artemis-ii-5058762.html"
     },
     {
       "number": 13,
-      "title": "Barca có thể đăng quang La Liga ngay trận Kinh điển",
+      "title": "5 lý do chọn VM Green Paradise Cần Giờ để du lịch chạy bộ",
       "source": "VnExpress",
       "type": "vietnam",
-      "description": "Để kịch bản này thành hiện thực, Barca chỉ cần duy trì khoảng cách 7 điểm hiện tại cho đến trận đại chiến với Real Madrid ngày 11/5 và đánh bại chính đối thủ ngay tại sân nhà Camp Nou.",
-      "image_path": "output\\images\\013_VnExpress_Barca có thể đăng quang La Liga ngay trận Kinh điển.png",
-      "url": "https://vnexpress.net/barca-co-the-dang-quang-la-liga-ngay-tran-kinh-dien-5058768.html"
+      "description": "Từ cung đường xanh đến trải nghiệm du lịch sinh thái, VnExpress Marathon Green Paradise Cần Giờ hội nhiều yếu tố để trở thành điểm race-cation trọn vẹn cho runner.",
+      "image_path": "output\\images\\013_VnExpress_5 lý do chọn VM Green Paradise Cần Giờ để du lịch chạy bộ.png",
+      "url": "https://vnexpress.net/5-ly-do-chon-vm-green-paradise-can-gio-de-du-lich-chay-bo-5058759.html"
     },
     {
       "number": 14,
-      "title": "Tạ Minh Tâm vui thú điền viên",
+      "title": "Trung tâm hành chính mới TP HCM phục vụ tối đa 15.000 người",
       "source": "VnExpress",
       "type": "vietnam",
-      "description": "Nghệ sĩ Tạ Minh Tâm, 66 tuổi, dựng chòi câu cá, trồng cây, hoa tại nhà vườn 3.000 m2 ở Long An (Tây Ninh mới).",
-      "image_path": "output\\images\\014_VnExpress_Tạ Minh Tâm vui thú điền viên.png",
-      "url": "https://vnexpress.net/ta-minh-tam-vui-thu-dien-vien-5058757.html"
+      "description": "Khu trung tâm chính trị - hành chính - văn hóa kết hợp công viên hồ trung tâm tại đô thị mới Thủ Thiêm rộng hơn 33 ha, phục vụ tối đa khoảng 15.000 người.",
+      "image_path": "output\\images\\014_VnExpress_Trung tâm hành chính mới TP HCM phục vụ tối đa 15.000 người.png",
+      "url": "https://vnexpress.net/trung-tam-hanh-chinh-moi-tp-hcm-phuc-vu-toi-da-15-000-nguoi-5058794.html"
     },
     {
       "number": 15,
-      "title": "Ôtô chở ba người lật sau tai nạn ở TP HCM",
+      "title": "Điểm tin 17h: Mỹ 'giải cứu thành công' phi công trên tiêm kích F-15 bị bắn hạ | Mỹ tuyên bố bắt người thân của tướng Iran",
       "source": "VnExpress",
       "type": "vietnam",
-      "description": "Ôtô chở ba người trong gia đình chạy trên quốc lộ 55 tông vào xe đậu bên lề, lao thêm 20 m rồi lật nghiêng bên đường, người dân phá cửa đưa các nạn nhân ra ngoài, trưa 5/4.",
-      "image_path": "output\\images\\015_VnExpress_Ôtô chở ba người lật sau tai nạn ở TP HCM.png",
-      "url": "https://vnexpress.net/oto-cho-ba-nguoi-lat-sau-tai-nan-o-tp-hcm-5058779.html"
+      "description": "Iran dọa 'mở cổng địa ngục' với Mỹ, Israel; Dự án sinh thái biển cao cấp Lạc Việt bị nghi lừa dối khách hàng;..",
+      "image_path": "output\\images\\015_VnExpress_Điểm tin 17h_ Mỹ 'giải cứu thành công' phi công trên tiêm kí.png",
+      "url": "https://vnexpress.net/diem-tin-17h-my-giai-cuu-thanh-cong-phi-cong-tren-tiem-kich-f-15-bi-ban-ha-my-tuyen-bo-bat-nguoi-than-cua-tuong-iran-5058795.html"
     },
     {
       "number": 16,
-      "title": "Iran tuyên bố bắn hạ ba máy bay Mỹ tham gia tìm phi công",
+      "title": "Bệnh viện Bạch Mai vận hành hai hệ thống chụp CT phát hiện sớm ung thư",
       "source": "VnExpress",
       "type": "vietnam",
-      "description": "Quân đội Iran tuyên bố lực lượng nước này bắn hạ hai trực thăng và một máy bay C-130 tham gia chiến dịch tìm kiếm phi công Mỹ.",
-      "image_path": "output\\images\\016_VnExpress_Iran tuyên bố bắn hạ ba máy bay Mỹ tham gia tìm phi công.png",
-      "url": "https://vnexpress.net/iran-tuyen-bo-ban-ha-ba-may-bay-my-tham-gia-tim-phi-cong-5058773.html"
-    },
-    {
-      "number": 17,
-      "title": "'Tuổi già dễ thở hơn khi lương hưu không phải gánh thuế'",
-      "source": "VnExpress",
-      "type": "vietnam",
-      "description": "Khoản lương hưu nhỏ mỗi tháng khiến bố mẹ tôi phải cân nhắc từng đồng chi tiêu để duy trì cuộc sống tuổi già.",
-      "image_path": "output\\images\\017_VnExpress_'Tuổi già dễ thở hơn khi lương hưu không phải gánh thuế'.png",
-      "url": "https://vnexpress.net/tuoi-gia-de-tho-hon-khi-luong-huu-khong-phai-ganh-thue-5058733.html"
-    },
-    {
-      "number": 18,
-      "title": "Phi hành gia Artemis II ăn gì trên tàu vũ trụ?",
-      "source": "VnExpress",
-      "type": "vietnam",
-      "description": "Trong 10 ngày du hành Mặt Trăng và trở về Trái Đất, các phi hành gia Artemis II thưởng thức tới 189 món ăn và hơn 10 loại đồ uống.",
-      "image_path": "output\\images\\018_VnExpress_Phi hành gia Artemis II ăn gì trên tàu vũ trụ_.png",
-      "url": "https://vnexpress.net/phi-hanh-gia-artemis-ii-an-gi-tren-tau-vu-tru-5058711.html"
-    },
-    {
-      "number": 19,
-      "title": "Tài xế kể khoảnh khắc cứu bé gái 2 tuổi tự băng qua quốc lộ",
-      "source": "VnExpress",
-      "type": "vietnam",
-      "description": "Trên đường lái xe từ TP Huế vào Đà Nẵng, anh Lý Văn Tố phát hiện bé gái 2 tuổi tự băng qua quốc lộ 1A và kịp thời chạy đến đưa cháu vào nơi an toàn.",
-      "image_path": "output\\images\\019_VnExpress_Tài xế kể khoảnh khắc cứu bé gái 2 tuổi tự băng qua quốc lộ.png",
-      "url": "https://vnexpress.net/tai-xe-ke-khoanh-khac-cuu-be-gai-2-tuoi-tu-bang-qua-quoc-lo-5058756.html"
-    },
-    {
-      "number": 20,
-      "title": "Thủ môn đấm khán giả ở Anh",
-      "source": "VnExpress",
-      "type": "vietnam",
-      "description": "Thủ môn Joe Wright của Enfield Town đấm vào một khán giả đối phương ngay trong trận gặp chủ nhà Chelmsford City ở giải hạng Sáu tối 4/4.",
-      "image_path": "output\\images\\020_VnExpress_Thủ môn đấm khán giả ở Anh.png",
-      "url": "https://vnexpress.net/thu-mon-dam-khan-gia-o-anh-5058727.html"
+      "description": "Bệnh viện Bạch Mai vận hành hai hệ thống chụp cắt lớp vi tính lượng tử (CT đếm photon), có khả năng loại bỏ nhiễu tín hiệu điện tử phát hiện sớm tổn thương rất nhỏ.",
+      "image_path": "output\\images\\016_VnExpress_Bệnh viện Bạch Mai vận hành hai hệ thống chụp CT phát hiện s.png",
+      "url": "https://vnexpress.net/benh-vien-bach-mai-van-hanh-hai-he-thong-chup-ct-phat-hien-som-ung-thu-5058774.html"
     }
   ]
 }
