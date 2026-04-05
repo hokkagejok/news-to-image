@@ -28,23 +28,33 @@ from config import (
 # ── Константы дизайна ────────────────────────────────────────────────────────
 
 PADDING = 80
+
 OVERLAY_ALPHA_TOP    = int(0.45 * 255)   # ~115 — верх светлее
 OVERLAY_ALPHA_BOTTOM = int(0.85 * 255)   # ~217 — низ темнее (текст читаем)
 
 MAX_TITLE_CHARS = 150
 MAX_DESC_CHARS  = 250
 
-TITLE_FONT_SIZE = 68
-DESC_FONT_SIZE  = 38
+# Автоподбор размера шрифта заголовка
+TITLE_FONT_START = 72    # начальный размер
+TITLE_FONT_MIN   = 48    # минимальный размер
+TITLE_FONT_STEP  = 4     # шаг уменьшения
+TITLE_MAX_LINES  = 4     # макс. строк заголовка
+
+# Описание — фиксированный шрифт, обрезается до 3 строк
+DESC_FONT_SIZE  = 36
+DESC_MAX_LINES  = 3
 
 TITLE_LINE_SPACING = 14
 DESC_LINE_SPACING  = 8
-BLOCK_GAP          = 28   # отступ между заголовком и описанием (px)
+BLOCK_GAP          = 28  # отступ между заголовком и описанием (px)
+
+# Нижние границы: текст не должен заходить ниже этих Y-координат
+TITLE_MAX_BOTTOM = IMAGE_HEIGHT - 400   # 1520
+DESC_MAX_BOTTOM  = IMAGE_HEIGHT - 100   # 1820
 
 # Заголовок начинается не выше этой Y-координаты (нижняя треть)
 TEXT_ZONE_TOP = 1300
-# Заголовок не опускается ниже этой Y-координаты (с учётом PADDING снизу)
-TEXT_ZONE_BOTTOM = IMAGE_HEIGHT - PADDING
 
 SHADOW_OFFSET = 4
 SHADOW_COLOR  = (0, 0, 0, 230)
@@ -56,18 +66,25 @@ LOGO_CROP_PERCENT = 0.15
 
 # Пары (верхний_цвет, нижний_цвет) для градиентного фона-заглушки
 _GRADIENT_PAIRS = [
-    ((20, 20, 40),  (0, 0, 0)),    # тёмно-синий → чёрный
-    ((40, 10, 10),  (0, 0, 0)),    # тёмно-красный → чёрный
-    ((10, 30, 20),  (0, 0, 0)),    # тёмно-зелёный → чёрный
-    ((30, 10, 40),  (0, 0, 0)),    # тёмно-фиолетовый → чёрный
-    ((10, 30, 50),  (0, 0, 0)),    # тёмно-бирюзовый → чёрный
-    ((50, 25, 10),  (0, 0, 0)),    # тёмно-коричневый → чёрный
+    ((20, 20, 40),  (0, 0, 0)),
+    ((40, 10, 10),  (0, 0, 0)),
+    ((10, 30, 20),  (0, 0, 0)),
+    ((30, 10, 40),  (0, 0, 0)),
+    ((10, 30, 50),  (0, 0, 0)),
+    ((50, 25, 10),  (0, 0, 0)),
 ]
 
 _UNSPLASH_TIMEOUT = 12
 
 # Кэш шрифтов
 _font_cache: dict = {}
+
+# Названия месяцев на русском для баннеров
+_RU_MONTHS = {
+    1: "января", 2: "февраля", 3: "марта",    4: "апреля",
+    5: "мая",    6: "июня",    7: "июля",     8: "августа",
+    9: "сентября", 10: "октября", 11: "ноября", 12: "декабря",
+}
 
 
 # ── Публичный API ─────────────────────────────────────────────────────────────
@@ -197,9 +214,7 @@ def _unsplash_image(title: str) -> Image.Image | None:
 
 
 def _generate_gradient_bg() -> Image.Image:
-    """
-    Генерирует тёмный двухцветный градиент сверху вниз.
-    """
+    """Генерирует тёмный двухцветный градиент сверху вниз."""
     top_color, bottom_color = random.choice(_GRADIENT_PAIRS)
     img  = Image.new("RGB", (IMAGE_WIDTH, IMAGE_HEIGHT))
     draw = ImageDraw.Draw(img)
@@ -234,7 +249,6 @@ def _remove_logo(img: Image.Image) -> Image.Image:
     """
     Обрезает нижние LOGO_CROP_PERCENT % кадра после первого resize,
     чтобы убрать логотип/watermark сайта.
-    После этого вызывающий код делает повторный resize до 1080×1920.
     """
     w, h = img.size
     cut  = int(h * LOGO_CROP_PERCENT)
@@ -246,10 +260,8 @@ def _remove_logo(img: Image.Image) -> Image.Image:
 def _apply_gradient_overlay(img: Image.Image) -> Image.Image:
     """
     Накладывает градиентный чёрный overlay:
-    - сверху: OVERLAY_ALPHA_TOP (~45% непрозрачности)
-    - снизу:  OVERLAY_ALPHA_BOTTOM (~85% непрозрачности)
-    Это делает нижнюю треть достаточно тёмной для читаемого текста,
-    не перекрывая верхнюю часть фотографии полностью.
+    - сверху: ~45% непрозрачности
+    - снизу:  ~85% непрозрачности
     """
     base    = img.convert("RGBA")
     overlay = Image.new("RGBA", base.size, (0, 0, 0, 0))
@@ -266,37 +278,98 @@ def _apply_gradient_overlay(img: Image.Image) -> Image.Image:
 
 # ── Отрисовка текста ──────────────────────────────────────────────────────────
 
+def _fit_title(
+    draw: ImageDraw.Draw,
+    text: str,
+    max_width: int,
+) -> tuple[ImageFont.FreeTypeFont, list[str]]:
+    """
+    Подбирает размер шрифта для заголовка так, чтобы текст влез в TITLE_MAX_LINES строк.
+    Начинает с TITLE_FONT_START, уменьшает на TITLE_FONT_STEP до TITLE_FONT_MIN.
+    """
+    size = TITLE_FONT_START
+    while size >= TITLE_FONT_MIN:
+        font  = _get_font(size, bold=True)
+        lines = _wrap(text, font, max_width, draw)
+        if len(lines) <= TITLE_MAX_LINES:
+            return font, lines
+        size -= TITLE_FONT_STEP
+
+    # Не влезло даже в минимальный размер — берём min-шрифт, обрезаем до MAX_LINES
+    font  = _get_font(TITLE_FONT_MIN, bold=True)
+    lines = _wrap(text, font, max_width, draw)
+    return font, lines[:TITLE_MAX_LINES]
+
+
+def _fit_desc(
+    draw: ImageDraw.Draw,
+    text: str,
+    font: ImageFont.FreeTypeFont,
+    max_width: int,
+) -> list[str]:
+    """
+    Переносит описание по словам. Если строк больше DESC_MAX_LINES — обрезает,
+    добавляя «…» к последней строке.
+    """
+    if not text:
+        return []
+
+    lines = _wrap(text, font, max_width, draw)
+
+    if len(lines) <= DESC_MAX_LINES:
+        return lines
+
+    # Обрезаем до лимита строк и добавляем "…" к последней
+    lines = lines[:DESC_MAX_LINES]
+    last  = lines[-1]
+    while last:
+        candidate = last.rstrip() + "…"
+        w = draw.textbbox((0, 0), candidate, font=font)[2]
+        if w <= max_width:
+            lines[-1] = candidate
+            break
+        last = last[:-1]
+
+    return lines
+
+
 def _draw_all_text(img: Image.Image, title: str, description: str) -> Image.Image:
     """
     Рисует текст в нижней трети картинки:
-      1. Заголовок — крупный жирный белый
-      2. Описание — под заголовком, светло-серый
-    Текстовый блок прижат к низу зоны TEXT_ZONE_TOP..TEXT_ZONE_BOTTOM.
+      1. Заголовок — автоподбор шрифта 72→48px, макс. 4 строки
+      2. Описание — 36px, макс. 3 строки с обрезкой и «…»
+
+    Ограничения позиционирования:
+      - Низ заголовка   ≤ TITLE_MAX_BOTTOM (y=1520)
+      - Низ описания    ≤ DESC_MAX_BOTTOM  (y=1820)
+      - Начало блока    ≥ TEXT_ZONE_TOP    (y=1300)
     """
     img_rgba   = img.convert("RGBA")
     text_layer = Image.new("RGBA", img_rgba.size, (0, 0, 0, 0))
     draw       = ImageDraw.Draw(text_layer)
 
-    W, H = img.size
-    max_text_w = W - PADDING * 2
+    W, H       = img.size
+    max_text_w = W - PADDING * 2   # 1080 - 160 = 920px
 
-    font_title = _get_font(TITLE_FONT_SIZE, bold=True)
-    font_desc  = _get_font(DESC_FONT_SIZE,  bold=False)
+    # Подбираем шрифт и строки заголовка
+    font_title, title_lines = _fit_title(draw, title, max_text_w)
+    title_h = _block_height(title_lines, font_title, draw, TITLE_LINE_SPACING)
 
-    # Вычисляем высоту всего текстового блока
-    title_lines = _wrap(title, font_title, max_text_w, draw)
-    title_h     = _block_height(title_lines, font_title, draw, TITLE_LINE_SPACING)
+    # Описание — фиксированный шрифт, обрезка до 3 строк
+    font_desc  = _get_font(DESC_FONT_SIZE, bold=False)
+    desc_lines = _fit_desc(draw, description, font_desc, max_text_w)
+    desc_h     = _block_height(desc_lines, font_desc, draw, DESC_LINE_SPACING)
 
-    desc_lines = _wrap(description, font_desc, max_text_w, draw) if description else []
-    desc_h     = _block_height(desc_lines, font_desc, draw, DESC_LINE_SPACING) if desc_lines else 0
+    gap           = BLOCK_GAP if desc_lines else 0
+    total_block_h = title_h + gap + desc_h
 
-    gap            = BLOCK_GAP if desc_lines else 0
-    total_block_h  = title_h + gap + desc_h
-
-    # Прижимаем блок к низу, но не выше TEXT_ZONE_TOP
-    block_y = TEXT_ZONE_BOTTOM - total_block_h
-    if block_y < TEXT_ZONE_TOP:
-        block_y = TEXT_ZONE_TOP
+    # Вычисляем Y начала блока: прижимаем вниз, но соблюдаем ограничения
+    # title_bottom = block_y + title_h <= TITLE_MAX_BOTTOM
+    # desc_bottom  = block_y + total_block_h <= DESC_MAX_BOTTOM
+    max_y_for_title = TITLE_MAX_BOTTOM - title_h
+    max_y_for_desc  = DESC_MAX_BOTTOM  - total_block_h
+    block_y = min(max_y_for_title, max_y_for_desc)
+    block_y = max(block_y, TEXT_ZONE_TOP)   # не выше верхней границы зоны
 
     # Рисуем заголовок
     _draw_text_block(
@@ -450,6 +523,116 @@ def _has_image_ext(url: str) -> bool:
     return any(base.endswith(e) for e in (".jpg", ".jpeg", ".png", ".webp", ".gif"))
 
 
+def _dark_gradient(draw: ImageDraw.Draw, w: int, h: int,
+                   top: tuple, bottom: tuple) -> None:
+    """Рисует вертикальный градиент на уже созданном draw-объекте."""
+    for y in range(h):
+        t = y / (h - 1)
+        r = int(top[0] + (bottom[0] - top[0]) * t)
+        g = int(top[1] + (bottom[1] - top[1]) * t)
+        b = int(top[2] + (bottom[2] - top[2]) * t)
+        draw.line([(0, y), (w, y)], fill=(r, g, b))
+
+
+# ── Вступительный баннер ──────────────────────────────────────────────────────
+
+def create_intro_banner(date_str: str, news_count: int, output_path: str) -> str:
+    """
+    Создаёт вступительный баннер дайджеста (1080×1920).
+
+    Args:
+        date_str:   дата в виде "5 апреля 2026" (или любая строка)
+        news_count: количество новостей в дайджесте
+        output_path: куда сохранить PNG
+
+    Returns:
+        output_path
+    """
+    W, H = 1080, 1920
+
+    img  = Image.new("RGB", (W, H), (0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    # Градиентный фон: тёмно-синий → чёрный
+    _dark_gradient(draw, W, H, (8, 12, 40), (0, 0, 0))
+
+    # Декоративные тонкие линии по левому и правому краю
+    for x_off in (30, 50):
+        draw.line([(x_off, 120), (x_off, H - 120)], fill=(220, 30, 30), width=2)
+        draw.line([(W - x_off, 120), (W - x_off, H - 120)], fill=(220, 30, 30), width=2)
+
+    # Декоративные точки по краям (каждые 120px по вертикали)
+    for y_dot in range(200, H - 200, 120):
+        draw.ellipse([18, y_dot - 5, 28, y_dot + 5],  fill=(220, 30, 30))
+        draw.ellipse([W - 28, y_dot - 5, W - 18, y_dot + 5], fill=(220, 30, 30))
+
+    # Шрифты
+    font_huge  = _get_font(100, bold=True)
+    font_big   = _get_font(80,  bold=True)
+    font_med   = _get_font(50,  bold=False)
+    font_small = _get_font(40,  bold=False)
+    font_xs    = _get_font(35,  bold=False)
+
+    # ── Красный круг-иконка сверху ───────────────────────────────────────────
+    icon_cy = 370
+    icon_r  = 130
+    draw.ellipse(
+        [W // 2 - icon_r, icon_cy - icon_r, W // 2 + icon_r, icon_cy + icon_r],
+        fill=(220, 30, 30),
+    )
+    # Иконка глобуса
+    draw.text((W // 2, icon_cy), "🌍", font=font_huge, anchor="mm", fill=(255, 255, 255))
+
+    # ── Надпись "НОВОСТИ" ─────────────────────────────────────────────────────
+    y_news = 580
+    draw.text((W // 2 + 4, y_news + 4), "НОВОСТИ", font=font_huge, anchor="mm", fill=(0, 0, 0))
+    draw.text((W // 2,     y_news),     "НОВОСТИ", font=font_huge, anchor="mm", fill=(255, 255, 255))
+
+    # ── Текущая дата ─────────────────────────────────────────────────────────
+    y_date = 700
+    draw.text((W // 2, y_date), date_str, font=font_med, anchor="mm", fill=(160, 160, 160))
+
+    # ── Горизонтальная красная линия (разделитель) ────────────────────────────
+    line_y = 790
+    draw.rectangle([(80, line_y), (W - 80, line_y + 5)], fill=(220, 30, 30))
+
+    # ── "ТОП СОБЫТИЙ" ────────────────────────────────────────────────────────
+    y_top = 910
+    draw.text((W // 2 + 4, y_top + 4), "ТОП СОБЫТИЙ", font=font_big, anchor="mm", fill=(0, 0, 0))
+    draw.text((W // 2,     y_top),     "ТОП СОБЫТИЙ", font=font_big, anchor="mm", fill=(255, 255, 255))
+
+    # ── Количество новостей ───────────────────────────────────────────────────
+    y_count = 1040
+    count_text = f"{news_count} новостей сегодня"
+    draw.text((W // 2, y_count), count_text, font=font_med, anchor="mm", fill=(220, 30, 30))
+
+    # ── Декоративные точки по центру ─────────────────────────────────────────
+    for i, x_dot in enumerate(range(380, 720, 60)):
+        color = (220, 30, 30) if i % 2 == 0 else (100, 100, 100)
+        dot_r = 8
+        draw.ellipse([x_dot - dot_r, 1160 - dot_r, x_dot + dot_r, 1160 + dot_r], fill=color)
+
+    # ── Горизонтальная линия снизу ────────────────────────────────────────────
+    draw.rectangle([(80, 1240), (W - 80, 1245)], fill=(220, 30, 30))
+
+    # ── Название канала ───────────────────────────────────────────────────────
+    y_channel = 1700
+    draw.text((W // 2 + 3, y_channel + 3), "@todayrealnews",
+              font=font_small, anchor="mm", fill=(0, 0, 0))
+    draw.text((W // 2, y_channel), "@todayrealnews",
+              font=font_small, anchor="mm", fill=(255, 255, 255))
+
+    # ── Призыв подписаться ───────────────────────────────────────────────────
+    y_sub = 1790
+    draw.text((W // 2, y_sub), "Подпишись чтобы не пропустить",
+              font=font_xs, anchor="mm", fill=(140, 140, 140))
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    img.save(output_path, "PNG", optimize=True)
+    print(f"    ✅ Вступительный баннер создан: {output_path}")
+    return output_path
+
+
 # ── Баннер подписки ───────────────────────────────────────────────────────────
 
 def create_subscribe_banner(output_path: str) -> str:
@@ -463,14 +646,9 @@ def create_subscribe_banner(output_path: str) -> str:
     draw = ImageDraw.Draw(img)
 
     # Градиентный фон: тёмно-синий сверху → чёрный снизу
-    for y in range(H):
-        ratio = y / H
-        r = int(5  + 10 * (1 - ratio))
-        g = int(5  + 15 * (1 - ratio))
-        b = int(20 + 60 * (1 - ratio))
-        draw.line([(0, y), (W, y)], fill=(r, g, b))
+    _dark_gradient(draw, W, H, (5, 5, 20), (0, 0, 0))
 
-    # Декоративные полупрозрачные круги на фоне
+    # Декоративные круги на фоне
     for _ in range(8):
         cx = random.randint(0, W)
         cy = random.randint(0, H)
@@ -493,11 +671,11 @@ def create_subscribe_banner(output_path: str) -> str:
         [W // 2 - icon_r, icon_y - icon_r, W // 2 + icon_r, icon_y + icon_r],
         fill=(220, 30, 30),
     )
-    # Символ газеты внутри круга
     draw.text((W // 2, icon_y), "📰", font=font_big, anchor="mm", fill=(255, 255, 255))
 
     # Горизонтальный разделитель под иконкой
-    draw.rectangle([(100, icon_y + icon_r + 50), (W - 100, icon_y + icon_r + 55)], fill=(220, 30, 30))
+    draw.rectangle([(100, icon_y + icon_r + 50), (W - 100, icon_y + icon_r + 55)],
+                   fill=(220, 30, 30))
 
     # Главный текст
     text_blocks = [
@@ -507,7 +685,6 @@ def create_subscribe_banner(output_path: str) -> str:
         ("ПЕРВЫМ!",    font_big, (220,  30,  30), 1090),
     ]
     for text, font, color, y in text_blocks:
-        # Тень
         draw.text((W // 2 + 3, y + 3), text, font=font, anchor="mm", fill=(0, 0, 0))
         draw.text((W // 2, y),          text, font=font, anchor="mm", fill=color)
 
@@ -521,14 +698,18 @@ def create_subscribe_banner(output_path: str) -> str:
         radius=42,
         fill=(220, 30, 30),
     )
-    draw.text((W // 2, btn_y), "👆 ПОДПИСАТЬСЯ", font=font_med, anchor="mm", fill=(255, 255, 255))
+    draw.text((W // 2, btn_y), "👆 ПОДПИСАТЬСЯ",
+              font=font_med, anchor="mm", fill=(255, 255, 255))
 
     # Название канала
-    draw.text((W // 2, 1490), "@todayrealnews", font=font_med, anchor="mm", fill=(255, 255, 255))
+    draw.text((W // 2, 1490), "@todayrealnews",
+              font=font_med, anchor="mm", fill=(255, 255, 255))
 
     # Подпись снизу
-    draw.text((W // 2, 1660), "Актуальные новости",     font=font_small, anchor="mm", fill=(150, 150, 150))
-    draw.text((W // 2, 1720), "каждый день в 10:00",    font=font_small, anchor="mm", fill=(150, 150, 150))
+    draw.text((W // 2, 1660), "Актуальные новости",
+              font=font_small, anchor="mm", fill=(150, 150, 150))
+    draw.text((W // 2, 1720), "каждый день в 10:00",
+              font=font_small, anchor="mm", fill=(150, 150, 150))
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     img.save(output_path, "PNG", optimize=True)

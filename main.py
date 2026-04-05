@@ -2,8 +2,8 @@
 news_to_image — главный модуль.
 Парсит новости → фильтрует кэш → дедуплицирует → переводит на русский
 → генерирует PNG → создаёт PDF → сохраняет отчёт
-→ отправляет новости в Telegram → отправляет баннер подписки
-→ обновляет кэш.
+→ отправляет интро-баннер → отправляет новости в Telegram
+→ отправляет баннер подписки → обновляет кэш.
 
 Запуск: python main.py
 """
@@ -25,7 +25,7 @@ from config import (
 )
 from parsers import parse_lenta, parse_ria, parse_bbc
 from generator import create_image
-from generator.image_gen import create_subscribe_banner
+from generator.image_gen import create_intro_banner, create_subscribe_banner
 from telegram_sender import send_all, send_banner
 from cache_manager import filter_new_news, add_to_cache
 
@@ -40,8 +40,16 @@ TRANSLATE_DELAY = 0.3
 # Источники, чьи заголовки/описания уже на русском — пропускаем перевод
 RUSSIAN_SOURCES = {"Lenta.ru", "RIA Novosti"}
 
-# Путь к файлу баннера подписки
-BANNER_PATH = os.path.join(IMAGES_DIR, "000_subscribe_banner.png")
+# Пути к баннерам
+INTRO_PATH   = os.path.join(IMAGES_DIR, "000_intro_banner.png")
+BANNER_PATH  = os.path.join(IMAGES_DIR, "000_subscribe_banner.png")
+
+# Русские названия месяцев для интро-баннера
+_RU_MONTHS = {
+    1: "января", 2: "февраля", 3: "марта",    4: "апреля",
+    5: "мая",    6: "июня",    7: "июля",     8: "августа",
+    9: "сентября", 10: "октября", 11: "ноября", 12: "декабря",
+}
 
 
 # ── Вспомогательные ───────────────────────────────────────────────────────────
@@ -58,6 +66,11 @@ def sanitize_filename(text: str, max_length: int = 60) -> str:
         text = text.replace(ch, "_")
     text = text.strip(". ").replace("  ", " ")
     return text[:max_length]
+
+
+def _ru_date(d: date) -> str:
+    """Возвращает дату в формате «5 апреля 2026»."""
+    return f"{d.day} {_RU_MONTHS[d.month]} {d.year}"
 
 
 # ── Сбор новостей ─────────────────────────────────────────────────────────────
@@ -237,7 +250,7 @@ def generate_images(news_list: list[dict]) -> list[str]:
         if success:
             print(f"    ✓ Сохранено: {filename}")
             created_paths.append(output_path)
-            # Сохраняем путь к картинке обратно в новость для отчёта и Telegram
+            # Сохраняем путь к картинке в новость для отчёта и Telegram
             news_item["image_path"] = os.path.relpath(output_path)
         else:
             print(f"    ✗ Ошибка при создании изображения")
@@ -409,11 +422,13 @@ def print_summary(
 # ── Точка входа ───────────────────────────────────────────────────────────────
 
 def main() -> None:
-    start = time.time()
+    start    = time.time()
+    today    = date.today()
+    date_ru  = _ru_date(today)
 
     print("\n" + "=" * 60)
     print("  NEWS TO IMAGE — Новостной дайджест")
-    print(f"  Дата: {date.today().strftime('%d.%m.%Y')}")
+    print(f"  Дата: {today.strftime('%d.%m.%Y')}")
     print("=" * 60)
 
     # 1. Директории
@@ -456,7 +471,19 @@ def main() -> None:
     print("=" * 60)
     save_news_report(unique_news)
 
-    # 9. Отправка новостей в Telegram
+    # 9. Вступительный баннер — создаём и отправляем ПЕРВЫМ
+    print("\n" + "=" * 60)
+    print("  ВСТУПИТЕЛЬНЫЙ БАННЕР")
+    print("=" * 60)
+    create_intro_banner(date_ru, len(unique_news), INTRO_PATH)
+    intro_caption = (
+        f"🗞 Доброе утро! Сегодня {date_ru}\n\n"
+        f"⚡️ {len(unique_news)} главных новостей дня\n\n"
+        f"📲 @todayrealnews"
+    )
+    send_banner(INTRO_PATH, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, caption=intro_caption)
+
+    # 10. Отправка всех новостей в Telegram
     print("\n" + "=" * 60)
     print("  ОТПРАВКА НОВОСТЕЙ В TELEGRAM")
     print("=" * 60)
@@ -464,14 +491,14 @@ def main() -> None:
     send_all(unique_news, IMAGES_DIR, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)
     print("✅ Все новости отправлены в Telegram!")
 
-    # 10. Генерация и отправка баннера подписки
+    # 11. Баннер подписки — отправляем ПОСЛЕДНИМ
     print("\n" + "=" * 60)
     print("  БАННЕР ПОДПИСКИ")
     print("=" * 60)
     create_subscribe_banner(BANNER_PATH)
     send_banner(BANNER_PATH, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)
 
-    # 11. Добавляем опубликованные новости в кэш
+    # 12. Добавляем опубликованные новости в кэш
     print("\n" + "=" * 60)
     print("  ОБНОВЛЕНИЕ КЭША")
     print("=" * 60)
@@ -479,7 +506,7 @@ def main() -> None:
         add_to_cache(news)
     print(f"[Кэш] Добавлено {len(unique_news)} новостей в output/published_news.json")
 
-    # 12. Итог
+    # 13. Итог
     elapsed = time.time() - start
     print(f"\n  Время выполнения: {elapsed:.1f} сек.")
     print_summary(len(all_news), len(unique_news), len(image_paths), pdf_path)

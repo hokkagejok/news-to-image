@@ -1,11 +1,11 @@
 """
-Модуль отправки новостей и баннера в Telegram.
+Модуль отправки новостей и баннеров в Telegram.
 
 Использует python-telegram-bot v20+ (async API).
 Установка: pip install python-telegram-bot
 
 Каждая новость отправляется как фото с подписью.
-В конце отправляется баннер подписки.
+В начале отправляется интро-баннер, в конце — баннер подписки.
 Если токен или chat_id не заданы — отправка пропускается.
 """
 
@@ -52,7 +52,6 @@ async def _send_news_to_telegram(
 
     for idx, news in enumerate(news_list, 1):
         try:
-            # Ищем файл картинки: сначала по сохранённому пути, потом по номеру
             image_path: Path | None = None
 
             saved_path = news.get("image_path", "")
@@ -67,7 +66,6 @@ async def _send_news_to_telegram(
                 print(f"  [{idx}/{total}] ⚠ Картинка не найдена, пропускаю: {news.get('title', '')[:50]}")
                 continue
 
-            # Формируем подпись (лимит Telegram — 1024 символа)
             title       = news.get("title",       "") or ""
             description = news.get("description", "") or ""
             url         = news.get("url",         "") or ""
@@ -102,36 +100,29 @@ async def _send_news_to_telegram(
     return sent
 
 
-async def _send_banner_to_telegram(
-    banner_path: str,
+async def _send_single_photo(
+    photo_path: str,
+    caption: str,
     token: str,
     chat_id: str,
 ) -> bool:
-    """
-    Асинхронно отправляет баннер подписки в Telegram.
-    Возвращает True при успехе.
-    """
+    """Асинхронно отправляет одно фото с заданной подписью."""
     try:
         from telegram import Bot
     except ImportError:
         return False
 
     bot = Bot(token=token)
-    caption = (
-        "📲 Подпишись на @todayrealnews, чтобы не пропустить "
-        "главные новости дня! 🌍"
-    )
-
     try:
-        with open(banner_path, "rb") as photo:
+        with open(photo_path, "rb") as f:
             await bot.send_photo(
                 chat_id=chat_id,
-                photo=photo,
-                caption=caption,
+                photo=f,
+                caption=caption[:1024],
             )
         return True
     except Exception as e:
-        print(f"  ❌ Ошибка отправки баннера: {e}")
+        print(f"  ❌ Ошибка отправки фото: {e}")
         return False
 
 
@@ -151,15 +142,26 @@ def send_all(
     print(f"[Telegram] Отправлено {sent} из {len(news_list)} новостей.")
 
 
-def send_banner(banner_path: str, token: str, chat_id: str) -> None:
-    """Синхронная обёртка: отправляет баннер подписки в Telegram."""
+def send_banner(photo_path: str, token: str, chat_id: str, caption: str = "") -> None:
+    """
+    Синхронная обёртка: отправляет одно фото (баннер) в Telegram.
+
+    Args:
+        photo_path: путь к PNG/JPG файлу
+        token:      Telegram Bot Token
+        chat_id:    ID канала или чата
+        caption:    подпись к фото (опционально)
+    """
     if not _credentials_ok(token, chat_id):
         return
 
-    if not Path(banner_path).exists():
-        print(f"[Telegram] Баннер не найден: {banner_path}")
+    if not Path(photo_path).exists():
+        print(f"[Telegram] Фото не найдено: {photo_path}")
         return
 
-    ok = asyncio.run(_send_banner_to_telegram(banner_path, token, chat_id))
+    if not caption:
+        caption = "📲 Подпишись на @todayrealnews, чтобы не пропустить главные новости дня! 🌍"
+
+    ok = asyncio.run(_send_single_photo(photo_path, caption, token, chat_id))
     if ok:
-        print(f"[Telegram] ✅ Баннер подписки отправлен.")
+        print(f"[Telegram] ✅ Баннер отправлен: {Path(photo_path).name}")
