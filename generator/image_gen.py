@@ -250,14 +250,10 @@ def prepare_background(
 ) -> Image.Image:
     """
     Если img=None — генерирует тёмный градиентный фон.
-    Иначе — режим FIT: картинка масштабируется так, чтобы полностью
-    влезть в холст без обрезки. Оставшееся пространство заполняется
-    размытой и затемнённой версией той же картинки.
-
-    Алгоритм:
-      1. Масштабируем картинку по наименьшей стороне (FIT).
-      2. Растягиваем оригинал на весь холст → размываем (GaussianBlur 30) → затемняем.
-      3. Вставляем FIT-картинку по центру поверх фона.
+    Иначе — режим FIT + размытый фон:
+      1. Оригинал растягивается на весь холст → GaussianBlur(25) → затемняется на 55%.
+      2. Поверх по центру вставляется чёткая FIT-версия (вписана без обрезки).
+      3. Нижние 80px закрашиваются чёрным — скрывает логотип BBC и схожие ватермарки.
     """
     if img is None:
         return create_gradient_bg(target_w, target_h)
@@ -267,23 +263,29 @@ def prepare_background(
 
     src_w, src_h = img.size
 
-    # FIT: масштабируем так, чтобы картинка полностью влезла в холст
-    scale = min(target_w / src_w, target_h / src_h)
-    new_w = int(src_w * scale)
-    new_h = int(src_h * scale)
+    # Фон: оригинал на весь холст → размыт → затемнён
+    bg      = img.copy().resize((target_w, target_h), Image.LANCZOS)
+    bg      = bg.filter(ImageFilter.GaussianBlur(radius=25))
+    overlay = Image.new("RGB", (target_w, target_h), (0, 0, 0))
+    bg      = Image.blend(bg, overlay, alpha=0.55)
 
+    # FIT: вписываем оригинал целиком (без обрезки)
+    scale       = min(target_w / src_w, target_h / src_h)
+    new_w       = int(src_w * scale)
+    new_h       = int(src_h * scale)
     img_resized = img.resize((new_w, new_h), Image.LANCZOS)
 
-    # Фон: оригинал растянут на весь холст → размыт → затемнён
-    bg   = img.resize((target_w, target_h), Image.LANCZOS)
-    bg   = bg.filter(ImageFilter.GaussianBlur(radius=30))
-    dark = Image.new("RGB", (target_w, target_h), (0, 0, 0))
-    bg   = Image.blend(bg, dark, alpha=0.5)
-
-    # Вставляем FIT-картинку по центру
+    # Вставляем по центру
     offset_x = (target_w - new_w) // 2
     offset_y = (target_h - new_h) // 2
     bg.paste(img_resized, (offset_x, offset_y))
+
+    # Скрываем логотип BBC и другие ватермарки — закрашиваем нижние 80px
+    draw_bg = ImageDraw.Draw(bg)
+    draw_bg.rectangle(
+        [(0, target_h - 80), (target_w, target_h)],
+        fill=(0, 0, 0),
+    )
 
     return bg
 
@@ -559,7 +561,7 @@ def create_intro_banner(date_str: str, news_count: int, output_path: str) -> str
         [bw // 2 - icon_r, icon_cy - icon_r, bw // 2 + icon_r, icon_cy + icon_r],
         fill=(220, 30, 30),
     )
-    draw.text((bw // 2, icon_cy), "🌍", font=font_huge, anchor="mm", fill=(255, 255, 255))
+    draw.text((bw // 2, icon_cy), "N", font=font_huge, anchor="mm", fill=(255, 255, 255))
 
     # Заголовок баннера
     _draw_text_centered(draw, "TIN TUC HOM NAY", font_huge, 580, bw, (255, 255, 255))
@@ -595,7 +597,7 @@ def create_intro_banner(date_str: str, news_count: int, output_path: str) -> str
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     img.save(output_path, "PNG", optimize=True)
-    print(f"    ✅ Вступительный баннер создан: {output_path}")
+    print(f"    [OK] Вступительный баннер создан: {output_path}")
     return output_path
 
 
@@ -630,7 +632,7 @@ def create_subscribe_banner(output_path: str) -> str:
         [bw // 2 - icon_r, icon_y - icon_r, bw // 2 + icon_r, icon_y + icon_r],
         fill=(220, 30, 30),
     )
-    draw.text((bw // 2, icon_y), "📰", font=font_big, anchor="mm", fill=(255, 255, 255))
+    draw.text((bw // 2, icon_y), "T", font=font_big, anchor="mm", fill=(255, 255, 255))
 
     # Разделитель
     draw.rectangle([(100, icon_y + icon_r + 50), (bw - 100, icon_y + icon_r + 55)],
@@ -665,5 +667,5 @@ def create_subscribe_banner(output_path: str) -> str:
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     img.save(output_path, "PNG", optimize=True)
-    print(f"    ✅ Баннер подписки создан: {output_path}")
+    print(f"    [OK] Баннер подписки создан: {output_path}")
     return output_path
