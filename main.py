@@ -121,6 +121,84 @@ def collect_all_news() -> list[dict]:
     return all_news
 
 
+# ── Исправление типов новостей ─────────────────────────────────────────────────
+
+_VIETNAM_SOURCES = ["VnExpress", "Tuoi Tre", "Dan Tri"]
+_WORLD_SOURCES   = ["BBC News", "Lenta.ru", "RIA Novosti"]
+
+
+def fix_news_types(news_list: list[dict]) -> list[dict]:
+    """Принудительно выставляет type по источнику — страховка от ошибок парсеров."""
+    for news in news_list:
+        source = news.get("source", "")
+        if source in _VIETNAM_SOURCES:
+            news["type"] = "vietnam"
+        elif source in _WORLD_SOURCES:
+            news["type"] = "world"
+        else:
+            news["type"] = "world"
+    return news_list
+
+
+# ── Фильтр по тематике (война / политика / экономика / катастрофы) ────────────
+
+_KEYWORDS_RU = [
+    "война", "удар", "атака", "обстрел", "ракет",
+    "войск", "армия", "военн", "боев", "фронт",
+    "санкци", "кризис", "взрыв", "теракт", "погиб",
+    "убит", "ранен", "захват", "наступлен", "оборон",
+    "трамп", "путин", "зеленск", "байден", "нато",
+    "россия", "украина", "израиль", "иран", "китай",
+    "президент", "правительств", "министр", "парламент",
+    "выборы", "протест", "митинг", "революци",
+    "экономик", "инфляци", "доллар", "нефть", "газ",
+    "катастроф", "землетрясен", "наводнен", "пожар",
+]
+
+_KEYWORDS_VI = [
+    "chien", "tan cong", "quan", "bom", "ten lua",
+    "xung dot", "khung bo", "chet", "thuong vong",
+    "trump", "putin", "zelensky", "biden", "nato",
+    "nga", "ukraine", "israel", "iran", "trung quoc",
+    "tong thong", "chinh phu", "bo truong", "quoc hoi",
+    "bau cu", "bieu tinh", "kinh te", "khung hoang",
+    "dau", "khi", "lu lut", "dong dat", "tham hoa",
+    "war", "attack", "strike", "missile", "troops",
+    "killed", "crisis", "sanctions", "nuclear",
+]
+
+# Объединённый набор — строчные, для быстрого поиска
+_ALL_KEYWORDS = [kw.lower() for kw in _KEYWORDS_RU + _KEYWORDS_VI]
+
+
+def filter_relevant_news(news_list: list[dict]) -> list[dict]:
+    """Оставляет только новости по теме (война/политика/экономика/катастрофы)."""
+    filtered = []
+    skipped  = 0
+
+    for news in news_list:
+        title = (news.get("title", "") or "").lower()
+        desc  = (news.get("description", "") or "").lower()
+        text  = title + " " + desc
+
+        is_relevant = any(kw in text for kw in _ALL_KEYWORDS)
+
+        if is_relevant:
+            filtered.append(news)
+        else:
+            skipped += 1
+            print(f"  [SKIP] Не по теме: {news.get('title', '')[:50]}")
+
+    print(f"[Фильтр тем] По теме: {len(filtered)} | Пропущено: {skipped}")
+
+    # Если слишком мало новостей прошло фильтр — берём все
+    if len(filtered) < 5:
+        print("[Фильтр тем] Мало новостей по теме, берём все")
+        return news_list
+
+    return filtered
+
+
 # ── Дедупликация ──────────────────────────────────────────────────────────────
 
 def _title_key(title: str) -> str:
@@ -297,7 +375,16 @@ def main() -> None:
         print("\n[ВНИМАНИЕ] Новости не найдены. Проверьте подключение к интернету.")
         sys.exit(1)
 
-    # 3. Фильтрация по кэшу
+    # 3. Принудительная установка type по источнику
+    all_news = fix_news_types(all_news)
+
+    # 4. Фильтр по тематике (война / политика / экономика / катастрофы)
+    print("\n" + "=" * 60)
+    print("  LOC CHU DE / ФИЛЬТР ПО ТЕМАТИКЕ")
+    print("=" * 60)
+    all_news = filter_relevant_news(all_news)
+
+    # 5. Фильтрация по кэшу
     print("\n" + "=" * 60)
     print("  LOC CACHE / ФИЛЬТРАЦИЯ КЭША")
     print("=" * 60)
@@ -307,26 +394,26 @@ def main() -> None:
         print("\n[INFO] Khong co tin moi! / Нет новых новостей!")
         sys.exit(0)
 
-    # 4. Дедупликация
+    # 6. Дедупликация
     print("\n" + "=" * 60)
     print("  LOC TRUNG LAP / ДЕДУПЛИКАЦИЯ")
     print("=" * 60)
     unique_news = deduplicate(all_news)
 
-    # 5. Перевод на вьетнамский (VnExpress / Tuoi Tre / Dan Tri — пропускаются)
+    # 7. Перевод на вьетнамский (VnExpress / Tuoi Tre / Dan Tri — пропускаются)
     unique_news = translate_all_news(unique_news)
 
-    # 6. Генерация изображений (два стиля: world / vietnam)
+    # 8. Генерация изображений (два стиля: world / vietnam)
     image_paths = generate_images(unique_news)
 
-    # 7. Генерация баннеров
+    # 9. Генерация баннеров
     print("\n" + "=" * 60)
     print("  TAO BANNER / СОЗДАНИЕ БАННЕРОВ")
     print("=" * 60)
     create_intro_banner(date_vi, len(unique_news), INTRO_PATH)
     create_subscribe_banner(BANNER_PATH)
 
-    # 8. Отправка в Telegram: удалить старые → интро → новости → подписка
+    # 10. Отправка в Telegram: удалить старые → интро → новости → подписка
     print("\n" + "=" * 60)
     print("  GUI TELEGRAM / ОТПРАВКА В TELEGRAM")
     print("=" * 60)
@@ -343,7 +430,7 @@ def main() -> None:
         intro_caption=intro_caption,
     )
 
-    # 9. Обновление кэша
+    # 11. Обновление кэша
     print("\n" + "=" * 60)
     print("  CAP NHAT CACHE / ОБНОВЛЕНИЕ КЭША")
     print("=" * 60)
@@ -351,7 +438,7 @@ def main() -> None:
         add_to_cache(news)
     print(f"[Кэш] Добавлено {len(unique_news)} новостей в output/published_news.json")
 
-    # 10. Итог
+    # 12. Итог
     elapsed = time.time() - start
     print(f"\n  Thoi gian thuc hien: {elapsed:.1f} giay")
     print_summary(len(all_news), len(unique_news), len(image_paths))
