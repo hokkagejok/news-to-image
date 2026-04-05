@@ -140,63 +140,74 @@ def fix_news_types(news_list: list[dict]) -> list[dict]:
     return news_list
 
 
-# ── Фильтр по тематике (война / политика / экономика / катастрофы) ────────────
+# ── Фильтр по тематике (приоритет: война / политика / катастрофы) ─────────────
 
-_KEYWORDS_RU = [
+_WAR_KEYWORDS = [
+    # Русские
     "война", "удар", "атака", "обстрел", "ракет",
     "войск", "армия", "военн", "боев", "фронт",
     "санкци", "кризис", "взрыв", "теракт", "погиб",
     "убит", "ранен", "захват", "наступлен", "оборон",
     "трамп", "путин", "зеленск", "байден", "нато",
     "россия", "украина", "израиль", "иран", "китай",
-    "президент", "правительств", "министр", "парламент",
-    "выборы", "протест", "митинг", "революци",
-    "экономик", "инфляци", "доллар", "нефть", "газ",
-    "катастроф", "землетрясен", "наводнен", "пожар",
-]
-
-_KEYWORDS_VI = [
-    "chien", "tan cong", "quan", "bom", "ten lua",
-    "xung dot", "khung bo", "chet", "thuong vong",
-    "trump", "putin", "zelensky", "biden", "nato",
-    "nga", "ukraine", "israel", "iran", "trung quoc",
-    "tong thong", "chinh phu", "bo truong", "quoc hoi",
-    "bau cu", "bieu tinh", "kinh te", "khung hoang",
-    "dau", "khi", "lu lut", "dong dat", "tham hoa",
+    "президент", "правительств", "министр",
+    "выборы", "протест", "революци",
+    "катастроф", "землетрясен", "наводнен",
+    # Вьетнамские
+    "chiến", "tấn công", "quân", "bom", "tên lửa",
+    "xung đột", "khủng bố", "chết", "thương vong",
+    "trump", "putin", "zelensky", "nato",
+    "nga", "ukraine", "israel", "iran",
+    "tổng thống", "chính phủ", "bộ trưởng",
+    "bầu cử", "biểu tình", "khủng hoảng",
+    "lũ lụt", "động đất", "thảm họa",
+    # Английские
     "war", "attack", "strike", "missile", "troops",
     "killed", "crisis", "sanctions", "nuclear",
+    "president", "government", "minister",
+    "election", "protest", "explosion",
 ]
 
-# Объединённый набор — строчные, для быстрого поиска
-_ALL_KEYWORDS = [kw.lower() for kw in _KEYWORDS_RU + _KEYWORDS_VI]
+_WAR_KEYWORDS_LOWER = [kw.lower() for kw in _WAR_KEYWORDS]
+
+_MIN_NEWS = 12
+_MAX_NEWS = 20
 
 
 def filter_relevant_news(news_list: list[dict]) -> list[dict]:
-    """Оставляет только новости по теме (война/политика/экономика/катастрофы)."""
-    filtered = []
-    skipped  = 0
+    """
+    Разделяет новости на приоритетные (война/политика) и остальные.
+    Берёт все приоритетные, добирает остальными до MIN_NEWS, обрезает до MAX_NEWS.
+    """
+    priority_news: list[dict] = []
+    other_news:    list[dict] = []
 
     for news in news_list:
         title = (news.get("title", "") or "").lower()
         desc  = (news.get("description", "") or "").lower()
         text  = title + " " + desc
 
-        is_relevant = any(kw in text for kw in _ALL_KEYWORDS)
-
-        if is_relevant:
-            filtered.append(news)
+        if any(kw in text for kw in _WAR_KEYWORDS_LOWER):
+            priority_news.append(news)
         else:
-            skipped += 1
-            print(f"  [SKIP] Не по теме: {news.get('title', '')[:50]}")
+            other_news.append(news)
 
-    print(f"[Фильтр тем] По теме: {len(filtered)} | Пропущено: {skipped}")
+    print(f"[Фильтр] Военных/политических: {len(priority_news)}")
+    print(f"[Фильтр] Других новостей: {len(other_news)}")
 
-    # Если слишком мало новостей прошло фильтр — берём все
-    if len(filtered) < 5:
-        print("[Фильтр тем] Мало новостей по теме, берём все")
-        return news_list
+    result = priority_news.copy()
 
-    return filtered
+    # Если приоритетных меньше MIN — добираем остальными
+    if len(result) < _MIN_NEWS:
+        needed = _MIN_NEWS - len(result)
+        result += other_news[:needed]
+        print(f"[Фильтр] Добавлено других новостей: {min(needed, len(other_news))}")
+
+    # Обрезать до максимума
+    result = result[:_MAX_NEWS]
+
+    print(f"[Фильтр] Итого новостей: {len(result)}")
+    return result
 
 
 # ── Дедупликация ──────────────────────────────────────────────────────────────
