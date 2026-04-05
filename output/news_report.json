@@ -1,7 +1,7 @@
 {
   "date": "05.04.2026",
-  "time": "14:19",
-  "total": 16,
+  "time": "14:28",
+  "total": 10,
   "news": [
     {
       "number": 1,
@@ -71,7 +71,7 @@
       "title": "Keir Starmer 'quan ngại sâu sắc' về sự xuất hiện của Kanye West tại lễ hội",
       "source": "BBC News",
       "type": "world",
-      "description": "Rapper này đã bị chỉ trích đáng kể về những nhận xét mang tính xúc phạm và chống Do Thái của mình trong những năm gần đây.",
+      "description": "Nhà tài trợ chính của lễ hội Pepsi đã rút tiền tài trợ khỏi Wireless, thông báo vào Chủ nhật.",
       "image_path": "output\\images\\008_BBC_News_Keir Starmer 'quan ngại sâu sắc' về sự xuất hiện của Kanye W.png",
       "url": "https://www.bbc.com/news/articles/cp86942yj97o"
     },
@@ -92,60 +92,6 @@
       "description": "Nhân dịp kỷ niệm 50 năm của gã khổng lồ công nghệ, chúng tôi yêu cầu các nhà phân tích nêu ra ba thành công và thất bại hàng đầu của Apple",
       "image_path": "output\\images\\010_BBC_News_Apple ở tuổi 50_ Gã khổng lồ công nghệ thành công và thất bạ.png",
       "url": "https://www.bbc.com/news/articles/ckgxdn9lyd2o"
-    },
-    {
-      "number": 11,
-      "title": "Voi rừng phá rào thép, xông vào trường học ở Sơn La",
-      "source": "VnExpress",
-      "type": "vietnam",
-      "description": "Camera ghi lại cảnh một cá thể voi rừng nặng hơn hai tấn phá rào thép, xâm nhập vào Trường phổ thông dân tộc bán trú THCS Huổi Một lúc rạng sáng.",
-      "image_path": "output\\images\\011_VnExpress_Voi rừng phá rào thép, xông vào trường học ở Sơn La.png",
-      "url": "https://vnexpress.net/voi-rung-pha-rao-thep-xong-vao-truong-hoc-o-son-la-5058798.html"
-    },
-    {
-      "number": 12,
-      "title": "Sự cố dai dẳng với nhà vệ sinh 23 triệu USD của Artemis II",
-      "source": "VnExpress",
-      "type": "vietnam",
-      "description": "Nhà vệ sinh trên tàu Orion tiếp tục gặp trục trặc trong ngày thứ ba trên hành trình đến Mặt Trăng.",
-      "image_path": "output\\images\\012_VnExpress_Sự cố dai dẳng với nhà vệ sinh 23 triệu USD của Artemis II.png",
-      "url": "https://vnexpress.net/su-co-dai-dang-voi-nha-ve-sinh-23-trieu-usd-cua-artemis-ii-5058762.html"
-    },
-    {
-      "number": 13,
-      "title": "5 lý do chọn VM Green Paradise Cần Giờ để du lịch chạy bộ",
-      "source": "VnExpress",
-      "type": "vietnam",
-      "description": "Từ cung đường xanh đến trải nghiệm du lịch sinh thái, VnExpress Marathon Green Paradise Cần Giờ hội nhiều yếu tố để trở thành điểm race-cation trọn vẹn cho runner.",
-      "image_path": "output\\images\\013_VnExpress_5 lý do chọn VM Green Paradise Cần Giờ để du lịch chạy bộ.png",
-      "url": "https://vnexpress.net/5-ly-do-chon-vm-green-paradise-can-gio-de-du-lich-chay-bo-5058759.html"
-    },
-    {
-      "number": 14,
-      "title": "Trung tâm hành chính mới TP HCM phục vụ tối đa 15.000 người",
-      "source": "VnExpress",
-      "type": "vietnam",
-      "description": "Khu trung tâm chính trị - hành chính - văn hóa kết hợp công viên hồ trung tâm tại đô thị mới Thủ Thiêm rộng hơn 33 ha, phục vụ tối đa khoảng 15.000 người.",
-      "image_path": "output\\images\\014_VnExpress_Trung tâm hành chính mới TP HCM phục vụ tối đa 15.000 người.png",
-      "url": "https://vnexpress.net/trung-tam-hanh-chinh-moi-tp-hcm-phuc-vu-toi-da-15-000-nguoi-5058794.html"
-    },
-    {
-      "number": 15,
-      "title": "Điểm tin 17h: Mỹ 'giải cứu thành công' phi công trên tiêm kích F-15 bị bắn hạ | Mỹ tuyên bố bắt người thân của tướng Iran",
-      "source": "VnExpress",
-      "type": "vietnam",
-      "description": "Iran dọa 'mở cổng địa ngục' với Mỹ, Israel; Dự án sinh thái biển cao cấp Lạc Việt bị nghi lừa dối khách hàng;..",
-      "image_path": "output\\images\\015_VnExpress_Điểm tin 17h_ Mỹ 'giải cứu thành công' phi công trên tiêm kí.png",
-      "url": "https://vnexpress.net/diem-tin-17h-my-giai-cuu-thanh-cong-phi-cong-tren-tiem-kich-f-15-bi-ban-ha-my-tuyen-bo-bat-nguoi-than-cua-tuong-iran-5058795.html"
-    },
-    {
-      "number": 16,
-      "title": "Bệnh viện Bạch Mai vận hành hai hệ thống chụp CT phát hiện sớm ung thư",
-      "source": "VnExpress",
-      "type": "vietnam",
-      "description": "Bệnh viện Bạch Mai vận hành hai hệ thống chụp cắt lớp vi tính lượng tử (CT đếm photon), có khả năng loại bỏ nhiễu tín hiệu điện tử phát hiện sớm tổn thương rất nhỏ.",
-      "image_path": "output\\images\\016_VnExpress_Bệnh viện Bạch Mai vận hành hai hệ thống chụp CT phát hiện s.png",
-      "url": "https://vnexpress.net/benh-vien-bach-mai-van-hanh-hai-he-thong-chup-ct-phat-hien-som-ung-thu-5058774.html"
     }
   ]
 }

@@ -24,7 +24,17 @@ from config import (
     IMAGE_WIDTH, IMAGE_HEIGHT,
     TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
 )
-from parsers import parse_lenta, parse_ria, parse_bbc, parse_vnexpress
+from parsers import (
+    parse_lenta,
+    parse_ria,
+    parse_bbc,
+    parse_vnexpress,
+    parse_tuoitre,
+    parse_dantri,
+)
+from parsers.vnexpress import get_news as get_vnexpress
+from parsers.tuoitre import get_news as get_tuoitre
+from parsers.dantri import get_news as get_dantri
 from generator import create_image
 from generator.image_gen import create_intro_banner, create_subscribe_banner
 from telegram_sender import send_all
@@ -39,7 +49,7 @@ DEDUP_THRESHOLD = 0.60
 TRANSLATE_DELAY = 0.3
 
 # Источники уже на вьетнамском — не переводить
-VIETNAMESE_SOURCES = {"VnExpress"}
+VIETNAMESE_SOURCES = {"VnExpress", "Tuoi Tre", "Dan Tri"}
 
 # Пути к баннерам
 INTRO_PATH  = os.path.join(IMAGES_DIR, "000_intro_banner.png")
@@ -71,7 +81,7 @@ def sanitize_filename(text: str, max_length: int = 60) -> str:
 
 
 def _vi_date(d: date) -> str:
-    """Возвращает дату в формате «ngày 5 tháng 4 năm 2026»."""
+    """Возвращает дату в формате «ngay 5 thang 4 nam 2026»."""
     return f"ngay {d.day} {_VI_MONTHS[d.month]} nam {d.year}"
 
 
@@ -84,14 +94,15 @@ def collect_all_news() -> list[dict]:
     print("=" * 60)
 
     all_news: list[dict] = []
-    parsers = [
+
+    # ── Мировые источники ─────────────────────────────────────────────────────
+    world_parsers = [
         ("Lenta.ru",    parse_lenta),
         ("RIA Novosti", parse_ria),
         ("BBC News",    parse_bbc),
-        ("VnExpress",   parse_vnexpress),
     ]
 
-    for source_name, parser_func in parsers:
+    for source_name, parser_func in world_parsers:
         print(f"\n→ Парсинг {source_name}...")
         try:
             news = parser_func()
@@ -100,6 +111,34 @@ def collect_all_news() -> list[dict]:
         except Exception as e:
             print(f"  [ОШИБКА] {source_name}: {e}")
         time.sleep(1)
+
+    # ── Вьетнамские источники ─────────────────────────────────────────────────
+    print(f"\n🇻🇳 Парсим VnExpress...")
+    try:
+        vn_news = get_vnexpress()
+        all_news.extend(vn_news)
+        print(f"  Получено: {len(vn_news)} новостей")
+    except Exception as e:
+        print(f"  [ОШИБКА] VnExpress: {e}")
+    time.sleep(1)
+
+    print(f"\n🇻🇳 Парсим Tuoi Tre...")
+    try:
+        tt_news = get_tuoitre()
+        all_news.extend(tt_news)
+        print(f"  Получено: {len(tt_news)} новостей")
+    except Exception as e:
+        print(f"  [ОШИБКА] Tuoi Tre: {e}")
+    time.sleep(1)
+
+    print(f"\n🇻🇳 Парсим Dan Tri...")
+    try:
+        dt_news = get_dantri()
+        all_news.extend(dt_news)
+        print(f"  Получено: {len(dt_news)} новостей")
+    except Exception as e:
+        print(f"  [ОШИБКА] Dan Tri: {e}")
+    time.sleep(1)
 
     print(f"\n[Итого до фильтрации] {len(all_news)} новостей.")
     return all_news
@@ -187,7 +226,7 @@ def _make_translator():
 def translate_all_news(news_list: list[dict]) -> list[dict]:
     """
     Переводит title и description на вьетнамский.
-    Новости из вьетнамских источников (VnExpress) — пропускаются.
+    Новости из вьетнамских источников (VnExpress, Tuoi Tre, Dan Tri) — пропускаются.
     """
     print("\n" + "=" * 60)
     print("  ПЕРЕВОД НА ВЬЕТНАМСКИЙ")
@@ -201,7 +240,7 @@ def translate_all_news(news_list: list[dict]) -> list[dict]:
     for idx, item in enumerate(news_list, 1):
         source = item.get("source", "")
 
-        # VnExpress уже на вьетнамском
+        # Вьетнамские источники уже на вьетнамском — пропустить
         if source in VIETNAMESE_SOURCES:
             skipped_count += 1
             continue
@@ -440,7 +479,7 @@ def main() -> None:
     # 1. Директории
     ensure_directories()
 
-    # 2. Сбор новостей
+    # 2. Сбор новостей (мировые + 3 вьетнамских источника)
     all_news = collect_all_news()
     if not all_news:
         print("\n[ВНИМАНИЕ] Новости не найдены. Проверьте подключение к интернету.")
@@ -462,7 +501,7 @@ def main() -> None:
     print("=" * 60)
     unique_news = deduplicate(all_news)
 
-    # 5. Перевод на вьетнамский
+    # 5. Перевод на вьетнамский (VnExpress / Tuoi Tre / Dan Tri — пропускаются)
     unique_news = translate_all_news(unique_news)
 
     # 6. Генерация изображений (два стиля: world / vietnam)
@@ -501,7 +540,7 @@ def main() -> None:
         intro_caption=intro_caption,
     )
 
-    # 12. Обновление кэша
+    # 11. Обновление кэша
     print("\n" + "=" * 60)
     print("  CAP NHAT CACHE / ОБНОВЛЕНИЕ КЭША")
     print("=" * 60)
@@ -509,7 +548,7 @@ def main() -> None:
         add_to_cache(news)
     print(f"[Кэш] Добавлено {len(unique_news)} новостей в output/published_news.json")
 
-    # 13. Итог
+    # 12. Итог
     elapsed = time.time() - start
     print(f"\n  Thoi gian thuc hien: {elapsed:.1f} giay")
     print_summary(len(all_news), len(unique_news), len(image_paths), pdf_path)

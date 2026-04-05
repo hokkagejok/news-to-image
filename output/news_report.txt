@@ -69,7 +69,7 @@ TIN #8 [WORLD]
 ------------------------------------------------------------
 Tieu de:   Keir Starmer 'quan ngại sâu sắc' về sự xuất hiện của Kanye West tại lễ hội
 Nguon:     BBC News
-Mo ta:     Rapper này đã bị chỉ trích đáng kể về những nhận xét mang tính xúc phạm và chống Do Thái của mình trong những năm gần đây.
+Mo ta:     Nhà tài trợ chính của lễ hội Pepsi đã rút tiền tài trợ khỏi Wireless, thông báo vào Chủ nhật.
 Hinh anh:  output\images\008_BBC_News_Keir Starmer 'quan ngại sâu sắc' về sự xuất hiện của Kanye W.png
 Lien ket:  https://www.bbc.com/news/articles/cp86942yj97o
 ------------------------------------------------------------
@@ -92,61 +92,7 @@ Hinh anh:  output\images\010_BBC_News_Apple ở tuổi 50_ Gã khổng lồ côn
 Lien ket:  https://www.bbc.com/news/articles/ckgxdn9lyd2o
 ------------------------------------------------------------
 
-TIN #11 [VIETNAM]
-------------------------------------------------------------
-Tieu de:   Voi rừng phá rào thép, xông vào trường học ở Sơn La
-Nguon:     VnExpress
-Mo ta:     Camera ghi lại cảnh một cá thể voi rừng nặng hơn hai tấn phá rào thép, xâm nhập vào Trường phổ thông dân tộc bán trú THCS Huổi Một lúc rạng sáng.
-Hinh anh:  output\images\011_VnExpress_Voi rừng phá rào thép, xông vào trường học ở Sơn La.png
-Lien ket:  https://vnexpress.net/voi-rung-pha-rao-thep-xong-vao-truong-hoc-o-son-la-5058798.html
-------------------------------------------------------------
-
-TIN #12 [VIETNAM]
-------------------------------------------------------------
-Tieu de:   Sự cố dai dẳng với nhà vệ sinh 23 triệu USD của Artemis II
-Nguon:     VnExpress
-Mo ta:     Nhà vệ sinh trên tàu Orion tiếp tục gặp trục trặc trong ngày thứ ba trên hành trình đến Mặt Trăng.
-Hinh anh:  output\images\012_VnExpress_Sự cố dai dẳng với nhà vệ sinh 23 triệu USD của Artemis II.png
-Lien ket:  https://vnexpress.net/su-co-dai-dang-voi-nha-ve-sinh-23-trieu-usd-cua-artemis-ii-5058762.html
-------------------------------------------------------------
-
-TIN #13 [VIETNAM]
-------------------------------------------------------------
-Tieu de:   5 lý do chọn VM Green Paradise Cần Giờ để du lịch chạy bộ
-Nguon:     VnExpress
-Mo ta:     Từ cung đường xanh đến trải nghiệm du lịch sinh thái, VnExpress Marathon Green Paradise Cần Giờ hội nhiều yếu tố để trở thành điểm race-cation trọn vẹn cho runner.
-Hinh anh:  output\images\013_VnExpress_5 lý do chọn VM Green Paradise Cần Giờ để du lịch chạy bộ.png
-Lien ket:  https://vnexpress.net/5-ly-do-chon-vm-green-paradise-can-gio-de-du-lich-chay-bo-5058759.html
-------------------------------------------------------------
-
-TIN #14 [VIETNAM]
-------------------------------------------------------------
-Tieu de:   Trung tâm hành chính mới TP HCM phục vụ tối đa 15.000 người
-Nguon:     VnExpress
-Mo ta:     Khu trung tâm chính trị - hành chính - văn hóa kết hợp công viên hồ trung tâm tại đô thị mới Thủ Thiêm rộng hơn 33 ha, phục vụ tối đa khoảng 15.000 người.
-Hinh anh:  output\images\014_VnExpress_Trung tâm hành chính mới TP HCM phục vụ tối đa 15.000 người.png
-Lien ket:  https://vnexpress.net/trung-tam-hanh-chinh-moi-tp-hcm-phuc-vu-toi-da-15-000-nguoi-5058794.html
-------------------------------------------------------------
-
-TIN #15 [VIETNAM]
-------------------------------------------------------------
-Tieu de:   Điểm tin 17h: Mỹ 'giải cứu thành công' phi công trên tiêm kích F-15 bị bắn hạ | Mỹ tuyên bố bắt người thân của tướng Iran
-Nguon:     VnExpress
-Mo ta:     Iran dọa 'mở cổng địa ngục' với Mỹ, Israel; Dự án sinh thái biển cao cấp Lạc Việt bị nghi lừa dối khách hàng;..
-Hinh anh:  output\images\015_VnExpress_Điểm tin 17h_ Mỹ 'giải cứu thành công' phi công trên tiêm kí.png
-Lien ket:  https://vnexpress.net/diem-tin-17h-my-giai-cuu-thanh-cong-phi-cong-tren-tiem-kich-f-15-bi-ban-ha-my-tuyen-bo-bat-nguoi-than-cua-tuong-iran-5058795.html
-------------------------------------------------------------
-
-TIN #16 [VIETNAM]
-------------------------------------------------------------
-Tieu de:   Bệnh viện Bạch Mai vận hành hai hệ thống chụp CT phát hiện sớm ung thư
-Nguon:     VnExpress
-Mo ta:     Bệnh viện Bạch Mai vận hành hai hệ thống chụp cắt lớp vi tính lượng tử (CT đếm photon), có khả năng loại bỏ nhiễu tín hiệu điện tử phát hiện sớm tổn thương rất nhỏ.
-Hinh anh:  output\images\016_VnExpress_Bệnh viện Bạch Mai vận hành hai hệ thống chụp CT phát hiện s.png
-Lien ket:  https://vnexpress.net/benh-vien-bach-mai-van-hanh-hai-he-thong-chup-ct-phat-hien-som-ung-thu-5058774.html
-------------------------------------------------------------
-
 ============================================================
-TONG CONG: 16 tin tuc
-Tao luc: 05.04.2026 luc 14:19
+TONG CONG: 10 tin tuc
+Tao luc: 05.04.2026 luc 14:28
 ============================================================
