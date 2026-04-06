@@ -4,7 +4,7 @@
 
 Конвейер create_image:
   1. download_image(url)       — скачать оригинальное фото статьи
-  2. get_fallback_image(title) — если нет фото → Picsum Photos (seed по заголовку)
+  2. get_fallback_image(title) — если нет фото → Google Images → Picsum (seed)
   3. prepare_background(img)   — FIT-resize + размытый фон
   4. add_overlay(img)          — градиентный overlay 80→220 alpha
   5. draw_badge(draw, type)    — бейдж типа новости (верх-лево)
@@ -17,6 +17,7 @@ import io
 import os
 import sys
 import random
+import urllib.parse
 
 import requests
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -25,6 +26,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import (
     IMAGE_WIDTH, IMAGE_HEIGHT,
     FONT_PATH, HEADERS, REQUEST_TIMEOUT,
+    GOOGLE_API_KEY, GOOGLE_CX,
 )
 
 # ── Константы ────────────────────────────────────────────────────────────────
@@ -190,15 +192,16 @@ def download_image(url: str) -> Image.Image | None:
 
 def get_fallback_image(title: str, news_type: str = "world") -> Image.Image | None:
     """
-    Попытка 1 — Wikipedia API: ищет фото по ключевым словам из заголовка.
+    Попытка 1 — Google Custom Search: ищет релевантное фото по заголовку.
     Попытка 2 — Picsum Photos: детерминированное фото по MD5-seed заголовка.
 
     Возвращает None только если обе попытки провалились (→ градиентный фон).
     """
-    # Попытка 1 — Wikipedia
-    img = get_wikipedia_image(title)
-    if img:
-        return img
+    # Попытка 1 — Google Images (самое релевантное)
+    if GOOGLE_API_KEY and GOOGLE_CX:
+        img = get_google_image(title, GOOGLE_API_KEY, GOOGLE_CX)
+        if img:
+            return img
 
     # Попытка 2 — Picsum (запасной)
     seed = int(hashlib.md5(title.encode("utf-8", errors="replace")).hexdigest()[:8], 16) % 1000
@@ -229,91 +232,58 @@ def get_fallback_image(title: str, news_type: str = "world") -> Image.Image | No
     return None
 
 
-def get_wikipedia_image(title: str) -> Image.Image | None:
+def get_google_image(
+    title: str,
+    api_key: str,
+    cx: str,
+) -> Image.Image | None:
     """
-    Ищет тематическое фото через Wikipedia API по ключевым словам из заголовка.
+    Ищет релевантное фото через Google Custom Search API.
 
     Алгоритм:
-      1. Убирает стоп-слова (EN + VI) из заголовка → берёт первые 4 слова.
-      2. Делает поиск Wikipedia (list=search) по этому запросу.
-      3. Для первого результата запрашивает pageimages (thumbnail 1080px).
-      4. Скачивает и возвращает фото.
+      1. Берёт первые 5 слов заголовка как поисковый запрос.
+      2. Делает запрос к Google Custom Search (searchType=image, imgSize=large).
+      3. Пробует скачать до 3 результатов, возвращает первое успешное фото.
     """
-    _STOP = {
-        "the", "a", "an", "is", "are", "was", "were",
-        "in", "on", "at", "to", "for", "of", "and", "or", "but",
-        "with", "that", "this", "it", "he", "she", "they",
-        # вьетнамские
-        "voi", "cua", "va", "la", "co", "duoc", "cho", "trong",
-        "sau", "theo", "ve", "tu", "khi", "nay", "mot", "cac",
-        "nhung", "da", "len", "den",
-    }
-
     try:
-        words = [
-            w for w in title.split()
-            if w.lower().rstrip(".,!?:;") not in _STOP and len(w) > 3
-        ]
-        query = " ".join(words[:4])
-        if not query:
-            return None
+        query = " ".join(title.split()[:5])
+        encoded = urllib.parse.quote(query)
 
-        # Шаг 1: поиск страницы
-        search_resp = requests.get(
-            "https://en.wikipedia.org/w/api.php",
-            params={
-                "action": "query",
-                "format": "json",
-                "list": "search",
-                "srsearch": query,
-                "srlimit": 3,
-            },
-            headers={"User-Agent": "Mozilla/5.0"},
-            timeout=8,
+        url = (
+            f"https://www.googleapis.com/customsearch/v1"
+            f"?key={api_key}"
+            f"&cx={cx}"
+            f"&q={encoded}"
+            f"&searchType=image"
+            f"&imgSize=large"
+            f"&num=3"
+            f"&safe=active"
         )
-        search_data = search_resp.json()
-        results = search_data.get("query", {}).get("search", [])
-        if not results:
-            print(f"    [Wikipedia] Нет результатов для: {query!r}")
-            return None
 
-        page_title = results[0]["title"]
+        resp = requests.get(url, timeout=10)
+        data = resp.json()
 
-        # Шаг 2: получить thumbnail страницы
-        img_resp = requests.get(
-            "https://en.wikipedia.org/w/api.php",
-            params={
-                "action": "query",
-                "format": "json",
-                "titles": page_title,
-                "prop": "pageimages",
-                "pithumbsize": 1080,
-            },
-            headers={"User-Agent": "Mozilla/5.0"},
-            timeout=8,
-        )
-        img_data = img_resp.json()
-        pages = img_data.get("query", {}).get("pages", {})
-
-        for page in pages.values():
-            thumb_url = page.get("thumbnail", {}).get("source", "")
-            if not thumb_url:
+        items = data.get("items", [])
+        for item in items:
+            img_url = item.get("link", "")
+            if not img_url:
                 continue
-            photo_resp = requests.get(
-                thumb_url,
-                headers={"User-Agent": "Mozilla/5.0"},
-                timeout=10,
-            )
-            if photo_resp.status_code == 200 and len(photo_resp.content) > 5_000:
-                img = Image.open(io.BytesIO(photo_resp.content)).convert("RGB")
-                if img.width > 200 and img.height > 200:
-                    print(f"    [Wikipedia] OK: {page_title!r}")
-                    return img
-
-        print(f"    [Wikipedia] Нет фото для страницы: {page_title!r}")
+            try:
+                photo = requests.get(
+                    img_url,
+                    timeout=8,
+                    headers={"User-Agent": "Mozilla/5.0"},
+                )
+                if photo.status_code == 200 and len(photo.content) > 5_000:
+                    img = Image.open(io.BytesIO(photo.content)).convert("RGB")
+                    if img.width > 200 and img.height > 200:
+                        print(f"    [Google] OK: {query!r}")
+                        return img
+            except Exception:
+                continue
 
     except Exception as e:
-        print(f"    [Wikipedia] Ошибка: {e}")
+        print(f"    [Google] Ошибка: {e}")
 
     return None
 

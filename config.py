@@ -18,6 +18,12 @@ SOURCE_FONT_SIZE = 36
 TITLE_PADDING    = 80
 OVERLAY_OPACITY  = 180  # 0-255, 180 ≈ 70%
 
+# === Google Custom Search (для поиска релевантных фото) ===
+# API Key: https://console.developers.google.com → включить "Custom Search API"
+# CX (Search Engine ID): https://cse.google.com → создать поисковик → "Search entire web"
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
+GOOGLE_CX      = os.getenv("GOOGLE_CX", "")
+
 # === Telegram ===
 # Получить токен у @BotFather в Telegram.
 # chat_id: для канала — "@ваш_канал" или числовой ID; для личного чата — ваш числовой ID.
