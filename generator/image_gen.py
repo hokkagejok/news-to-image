@@ -190,16 +190,17 @@ def download_image(url: str) -> Image.Image | None:
 
 def get_fallback_image(title: str, news_type: str = "world") -> Image.Image | None:
     """
-    Загружает случайное фото с Picsum Photos (picsum.photos) — бесплатно, без ключа.
+    Попытка 1 — Wikipedia API: ищет фото по ключевым словам из заголовка.
+    Попытка 2 — Picsum Photos: детерминированное фото по MD5-seed заголовка.
 
-    seed вычисляется из MD5 заголовка → одна новость всегда получает одно фото.
-    Пробует 3 URL по убыванию надёжности:
-      1. picsum.photos/seed/{seed}/1080/1920  — детерминированное фото по seed
-      2. picsum.photos/1080/1920?random={seed}  — случайное с тем же seed
-      3. picsum.photos/1080/1920?random={seed+1} — запасной вариант
-
-    Возвращает None только если все 3 попытки провалились (→ градиентный фон).
+    Возвращает None только если обе попытки провалились (→ градиентный фон).
     """
+    # Попытка 1 — Wikipedia
+    img = get_wikipedia_image(title)
+    if img:
+        return img
+
+    # Попытка 2 — Picsum (запасной)
     seed = int(hashlib.md5(title.encode("utf-8", errors="replace")).hexdigest()[:8], 16) % 1000
 
     urls = [
@@ -224,6 +225,95 @@ def get_fallback_image(title: str, news_type: str = "world") -> Image.Image | No
         except Exception as e:
             print(f"    [Picsum] Ошибка ({url[:55]}): {e}")
             continue
+
+    return None
+
+
+def get_wikipedia_image(title: str) -> Image.Image | None:
+    """
+    Ищет тематическое фото через Wikipedia API по ключевым словам из заголовка.
+
+    Алгоритм:
+      1. Убирает стоп-слова (EN + VI) из заголовка → берёт первые 4 слова.
+      2. Делает поиск Wikipedia (list=search) по этому запросу.
+      3. Для первого результата запрашивает pageimages (thumbnail 1080px).
+      4. Скачивает и возвращает фото.
+    """
+    _STOP = {
+        "the", "a", "an", "is", "are", "was", "were",
+        "in", "on", "at", "to", "for", "of", "and", "or", "but",
+        "with", "that", "this", "it", "he", "she", "they",
+        # вьетнамские
+        "voi", "cua", "va", "la", "co", "duoc", "cho", "trong",
+        "sau", "theo", "ve", "tu", "khi", "nay", "mot", "cac",
+        "nhung", "da", "len", "den",
+    }
+
+    try:
+        words = [
+            w for w in title.split()
+            if w.lower().rstrip(".,!?:;") not in _STOP and len(w) > 3
+        ]
+        query = " ".join(words[:4])
+        if not query:
+            return None
+
+        # Шаг 1: поиск страницы
+        search_resp = requests.get(
+            "https://en.wikipedia.org/w/api.php",
+            params={
+                "action": "query",
+                "format": "json",
+                "list": "search",
+                "srsearch": query,
+                "srlimit": 3,
+            },
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=8,
+        )
+        search_data = search_resp.json()
+        results = search_data.get("query", {}).get("search", [])
+        if not results:
+            print(f"    [Wikipedia] Нет результатов для: {query!r}")
+            return None
+
+        page_title = results[0]["title"]
+
+        # Шаг 2: получить thumbnail страницы
+        img_resp = requests.get(
+            "https://en.wikipedia.org/w/api.php",
+            params={
+                "action": "query",
+                "format": "json",
+                "titles": page_title,
+                "prop": "pageimages",
+                "pithumbsize": 1080,
+            },
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=8,
+        )
+        img_data = img_resp.json()
+        pages = img_data.get("query", {}).get("pages", {})
+
+        for page in pages.values():
+            thumb_url = page.get("thumbnail", {}).get("source", "")
+            if not thumb_url:
+                continue
+            photo_resp = requests.get(
+                thumb_url,
+                headers={"User-Agent": "Mozilla/5.0"},
+                timeout=10,
+            )
+            if photo_resp.status_code == 200 and len(photo_resp.content) > 5_000:
+                img = Image.open(io.BytesIO(photo_resp.content)).convert("RGB")
+                if img.width > 200 and img.height > 200:
+                    print(f"    [Wikipedia] OK: {page_title!r}")
+                    return img
+
+        print(f"    [Wikipedia] Нет фото для страницы: {page_title!r}")
+
+    except Exception as e:
+        print(f"    [Wikipedia] Ошибка: {e}")
 
     return None
 
