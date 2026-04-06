@@ -21,8 +21,11 @@ OVERLAY_OPACITY  = 180  # 0-255, 180 ≈ 70%
 # === Google Custom Search (для поиска релевантных фото) ===
 # API Key: https://console.developers.google.com → включить "Custom Search API"
 # CX (Search Engine ID): https://cse.google.com → создать поисковик → "Search entire web"
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
-GOOGLE_CX      = os.getenv("GOOGLE_CX", "")
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
+GOOGLE_CX      = os.environ.get("GOOGLE_CX", "")
+
+print(f"[Config] GOOGLE_API_KEY: {'SET' if GOOGLE_API_KEY else 'NOT SET'}")
+print(f"[Config] GOOGLE_CX: {'SET' if GOOGLE_CX else 'NOT SET'}")
 
 # === Telegram ===
 # Получить токен у @BotFather в Telegram.
