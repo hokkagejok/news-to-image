@@ -12,6 +12,7 @@
   7. отрисовка описания        — 38px, макс. 3 строки
 """
 
+import base64
 import hashlib
 import io
 import os
@@ -172,14 +173,27 @@ def create_image(news_item: dict, output_path: str) -> bool:
 # ── Загрузка изображений ──────────────────────────────────────────────────────
 
 def download_image(url: str) -> Image.Image | None:
-    """Скачивает изображение по URL. Возвращает None при любой ошибке."""
+    """Скачивает изображение по URL или декодирует base64 data URI."""
     if not url or len(url) < 10:
         return None
     try:
+        # Обработка base64 data URI (data:image/...;base64,<data>)
+        if url.startswith("data:image"):
+            if "," not in url:
+                return None
+            _, data = url.split(",", 1)
+            img_bytes = base64.b64decode(data)
+            img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+            if img.width > 200 and img.height > 200:
+                return img
+            return None
+
+        # Обычный HTTP/HTTPS URL
         resp = requests.get(
             url,
             headers={"User-Agent": "Mozilla/5.0"},
             timeout=REQUEST_TIMEOUT,
+            allow_redirects=True,
         )
         if resp.status_code == 200 and len(resp.content) > 5_000:
             img = Image.open(io.BytesIO(resp.content)).convert("RGB")
@@ -197,11 +211,16 @@ def get_fallback_image(title: str, news_type: str = "world") -> Image.Image | No
 
     Возвращает None только если обе попытки провалились (→ градиентный фон).
     """
+    print(f"    [>] Нет фото, ищем через Google...")
+
     # Попытка 1 — Google Images (самое релевантное)
     if GOOGLE_API_KEY and GOOGLE_CX:
         img = get_google_image(title, GOOGLE_API_KEY, GOOGLE_CX)
         if img:
             return img
+        print(f"    [Google] Не нашёл, пробуем Picsum...")
+    else:
+        print(f"    [Google] API ключи не заданы, пробуем Picsum...")
 
     # Попытка 2 — Picsum (запасной)
     seed = int(hashlib.md5(title.encode("utf-8", errors="replace")).hexdigest()[:8], 16) % 1000
