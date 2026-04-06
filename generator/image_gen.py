@@ -285,7 +285,16 @@ def get_google_image(
         resp = requests.get(url, timeout=10)
         data = resp.json()
 
+        print(f"    [Google] Status: {resp.status_code}")
+        print(f"    [Google] Query: {query!r}")
+
+        if "error" in data:
+            print(f"    [Google] API Error: {data['error'].get('message', '')}")
+            return None
+
         items = data.get("items", [])
+        print(f"    [Google] Найдено результатов: {len(items)}")
+
         for item in items:
             img_url = item.get("link", "")
             if not img_url:
@@ -299,9 +308,10 @@ def get_google_image(
                 if photo.status_code == 200 and len(photo.content) > 5_000:
                     img = Image.open(io.BytesIO(photo.content)).convert("RGB")
                     if img.width > 200 and img.height > 200:
-                        print(f"    [Google] OK: {query!r}")
+                        print(f"    [Google] OK!")
                         return img
-            except Exception:
+            except Exception as e:
+                print(f"    [Google] Фото не загрузилось: {e}")
                 continue
 
     except Exception as e:
