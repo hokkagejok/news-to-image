@@ -27,7 +27,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import (
     IMAGE_WIDTH, IMAGE_HEIGHT,
     FONT_PATH, HEADERS, REQUEST_TIMEOUT,
-    GOOGLE_API_KEY, GOOGLE_CX,
 )
 
 # ── Константы ────────────────────────────────────────────────────────────────
@@ -211,11 +210,15 @@ def get_fallback_image(title: str, news_type: str = "world") -> Image.Image | No
 
     Возвращает None только если обе попытки провалились (→ градиентный фон).
     """
+    api_key = os.environ.get("GOOGLE_API_KEY", "")
+    cx = os.environ.get("GOOGLE_CX", "")
+
     print(f"    [>] Нет фото, ищем через Google...")
+    print(f"    [Debug] KEY={'SET' if api_key else 'EMPTY'} CX={'SET' if cx else 'EMPTY'}")
 
     # Попытка 1 — Google Images (самое релевантное)
-    if GOOGLE_API_KEY and GOOGLE_CX:
-        img = get_google_image(title, GOOGLE_API_KEY, GOOGLE_CX)
+    if api_key and cx:
+        img = get_google_image(title, api_key, cx)
         if img:
             return img
         print(f"    [Google] Не нашёл, пробуем Picsum...")
