@@ -16,6 +16,7 @@ import base64
 import hashlib
 import io
 import os
+import re
 import sys
 import random
 import urllib.parse
@@ -66,6 +67,12 @@ _STOP_WORDS = {
 }
 
 _PICSUM_TIMEOUT = 15
+
+_DDG_UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/122.0.0.0 Safari/537.36"
+)
 
 # Пары градиента для фона-заглушки
 _GRADIENT_PAIRS = [
@@ -205,36 +212,27 @@ def download_image(url: str) -> Image.Image | None:
 
 def get_fallback_image(title: str, news_type: str = "world") -> Image.Image | None:
     """
-    Попытка 1 — Google Custom Search: ищет релевантное фото по заголовку.
+    Попытка 1 — DuckDuckGo Images: бесплатно, без API ключей.
     Попытка 2 — Picsum Photos: детерминированное фото по MD5-seed заголовка.
 
     Возвращает None только если обе попытки провалились (→ градиентный фон).
     """
-    api_key = os.environ.get("GOOGLE_API_KEY", "")
-    cx = os.environ.get("GOOGLE_CX", "")
+    print(f"    [>] Нет фото, ищем через DuckDuckGo...")
 
-    print(f"    [>] Нет фото, ищем через Google...")
-    print(f"    [Debug] KEY={'SET:' + api_key[:4] if api_key else 'EMPTY'} CX={'SET' if cx else 'EMPTY'}")
-
-    # Попытка 1 — Google Images (самое релевантное)
-    if api_key and cx:
-        img = get_google_image(title, api_key, cx)
-        if img:
-            return img
-        print(f"    [Google] Не нашёл, пробуем Picsum...")
-    else:
-        print(f"    [Google] API ключи не заданы, пробуем Picsum...")
+    # Попытка 1 — DuckDuckGo Images
+    img = get_duckduckgo_image(title)
+    if img:
+        return img
+    print(f"    [DDG] Не нашёл, берём Picsum...")
 
     # Попытка 2 — Picsum (запасной)
     seed = int(hashlib.md5(title.encode("utf-8", errors="replace")).hexdigest()[:8], 16) % 1000
 
-    urls = [
+    for url in [
         f"https://picsum.photos/seed/{seed}/1080/1920",
         f"https://picsum.photos/1080/1920?random={seed}",
         f"https://picsum.photos/1080/1920?random={seed + 1}",
-    ]
-
-    for url in urls:
+    ]:
         try:
             resp = requests.get(
                 url,
@@ -254,68 +252,70 @@ def get_fallback_image(title: str, news_type: str = "world") -> Image.Image | No
     return None
 
 
-def get_google_image(
-    title: str,
-    api_key: str,
-    cx: str,
-) -> Image.Image | None:
+def get_duckduckgo_image(title: str) -> Image.Image | None:
     """
-    Ищет релевантное фото через Google Custom Search API.
+    Ищет релевантное фото через DuckDuckGo Images — без API ключей.
 
     Алгоритм:
-      1. Берёт первые 5 слов заголовка как поисковый запрос.
-      2. Делает запрос к Google Custom Search (searchType=image, imgSize=large).
-      3. Пробует скачать до 3 результатов, возвращает первое успешное фото.
+      1. GET duckduckgo.com → извлекает vqd-токен из HTML.
+      2. GET duckduckgo.com/i.js с vqd-токеном → получает JSON со списком картинок.
+      3. Пробует скачать первые 5 результатов, возвращает первое успешное фото.
     """
+    import re
+
     try:
-        query = " ".join(title.split()[:5])
+        query   = " ".join(title.split()[:4])
         encoded = urllib.parse.quote(query)
 
-        url = (
-            f"https://www.googleapis.com/customsearch/v1"
-            f"?key={api_key}"
-            f"&cx={cx}"
-            f"&q={encoded}"
-            f"&searchType=image"
-            f"&imgSize=large"
-            f"&num=3"
-            f"&safe=active"
+        # Шаг 1: получить vqd-токен
+        token_resp = requests.get(
+            f"https://duckduckgo.com/?q={encoded}&iax=images&ia=images",
+            headers={"User-Agent": _DDG_UA},
+            timeout=10,
         )
-
-        resp = requests.get(url, timeout=10)
-        data = resp.json()
-
-        print(f"    [Google] Status: {resp.status_code}")
-        print(f"    [Google] Query: {query!r}")
-
-        if "error" in data:
-            print(f"    [Google] API Error: {data['error'].get('message', '')}")
+        vqd_match = re.search(r'vqd=([\d-]+)', token_resp.text)
+        if not vqd_match:
+            print(f"    [DDG] vqd токен не найден")
             return None
 
-        items = data.get("items", [])
-        print(f"    [Google] Найдено результатов: {len(items)}")
+        vqd = vqd_match.group(1)
 
-        for item in items:
-            img_url = item.get("link", "")
-            if not img_url:
+        # Шаг 2: запрос списка картинок
+        img_resp = requests.get(
+            f"https://duckduckgo.com/i.js"
+            f"?q={encoded}&vqd={vqd}&f=,,,,,,&p=1",
+            headers={
+                "User-Agent": _DDG_UA,
+                "Referer":    "https://duckduckgo.com/",
+            },
+            timeout=10,
+        )
+        data    = img_resp.json()
+        results = data.get("results", [])
+        print(f"    [DDG] Query: {query!r}, результатов: {len(results)}")
+
+        # Шаг 3: скачать первое рабочее фото
+        for item in results[:5]:
+            photo_url = item.get("image", "")
+            if not photo_url:
                 continue
             try:
                 photo = requests.get(
-                    img_url,
+                    photo_url,
                     timeout=8,
                     headers={"User-Agent": "Mozilla/5.0"},
                 )
                 if photo.status_code == 200 and len(photo.content) > 5_000:
                     img = Image.open(io.BytesIO(photo.content)).convert("RGB")
                     if img.width > 200 and img.height > 200:
-                        print(f"    [Google] OK!")
+                        print(f"    [DDG] OK: {query!r}")
                         return img
             except Exception as e:
-                print(f"    [Google] Фото не загрузилось: {e}")
+                print(f"    [DDG] Фото не загрузилось: {e}")
                 continue
 
     except Exception as e:
-        print(f"    [Google] Ошибка: {e}")
+        print(f"    [DDG] Ошибка: {e}")
 
     return None
 

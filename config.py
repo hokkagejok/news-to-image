@@ -22,6 +22,10 @@ OVERLAY_OPACITY  = 180  # 0-255, 180 ≈ 70%
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID   = os.environ.get("TELEGRAM_CHAT_ID", "")
 
+# === Bing Image Search API (бесплатно, 1000 запросов/месяц) ===
+# Ключ: https://www.microsoft.com/en-us/bing/apis/bing-image-search-api
+BING_API_KEY = os.environ.get("BING_API_KEY", "")
+
 # === HTTP заголовки ===
 HEADERS = {
     "User-Agent": (
