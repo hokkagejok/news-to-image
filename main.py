@@ -39,6 +39,20 @@ from generator.image_gen import create_intro_banner, create_subscribe_banner
 from telegram_sender import send_all
 from cache_manager import filter_new_news, add_to_cache
 
+# ── Диагностика переменных окружения ──────────────────────────────────────────
+
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
+GOOGLE_CX      = os.environ.get("GOOGLE_CX", "")
+
+# Принудительно установить в os.environ если вдруг не установлены
+if GOOGLE_API_KEY:
+    os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
+if GOOGLE_CX:
+    os.environ["GOOGLE_CX"] = GOOGLE_CX
+
+print(f"[Main] GOOGLE_API_KEY: {'SET' if GOOGLE_API_KEY else 'EMPTY'}")
+print(f"[Main] GOOGLE_CX: {'SET' if GOOGLE_CX else 'EMPTY'}")
+
 # ── Настройки ─────────────────────────────────────────────────────────────────
 
 DEDUP_THRESHOLD   = 0.60   # Порог схожести заголовков (0–1)
