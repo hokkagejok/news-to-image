@@ -18,20 +18,18 @@ SOURCE_FONT_SIZE = 36
 TITLE_PADDING    = 80
 OVERLAY_OPACITY  = 180  # 0-255, 180 ≈ 70%
 
+# === Telegram ===
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID   = os.environ.get("TELEGRAM_CHAT_ID", "")
+
 # === Google Custom Search (для поиска релевантных фото) ===
 # API Key: https://console.developers.google.com → включить "Custom Search API"
 # CX (Search Engine ID): https://cse.google.com → создать поисковик → "Search entire web"
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 GOOGLE_CX      = os.environ.get("GOOGLE_CX", "")
 
-print(f"[Config] GOOGLE_API_KEY: {'SET' if GOOGLE_API_KEY else 'NOT SET'}")
-print(f"[Config] GOOGLE_CX: {'SET' if GOOGLE_CX else 'NOT SET'}")
-
-# === Telegram ===
-# Получить токен у @BotFather в Telegram.
-# chat_id: для канала — "@ваш_канал" или числовой ID; для личного чата — ваш числовой ID.
-TELEGRAM_BOT_TOKEN = "7896385069:AAEeFFzm4Fg8yvWmMn-AFTsJTHrv-R8Vnzk"
-TELEGRAM_CHAT_ID   = "1618448125"
+print(f"[Config] GOOGLE_API_KEY: {'SET' if GOOGLE_API_KEY else 'EMPTY'}")
+print(f"[Config] GOOGLE_CX: {'SET' if GOOGLE_CX else 'EMPTY'}")
 
 # === HTTP заголовки ===
 HEADERS = {
