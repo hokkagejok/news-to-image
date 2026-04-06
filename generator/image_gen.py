@@ -4,7 +4,8 @@
 
 Конвейер create_image:
   1. download_image(url)       — скачать оригинальное фото статьи
-  2. get_fallback_image(title) — если нет фото → Pixabay → Pexels → Picsum
+  2. get_fallback_image(search_title) — если нет фото → Pixabay → Pexels → Picsum
+                                         search_title = original_title (EN) или title (VI)
   3. prepare_background(img)   — FIT-resize + размытый фон
   4. add_overlay(img)          — градиентный overlay 80→220 alpha
   5. draw_badge(draw, type)    — бейдж типа новости (верх-лево)
@@ -105,20 +106,24 @@ def create_image(news_item: dict, output_path: str) -> bool:
         True — успех, False — ошибка
     """
     try:
-        title     = (news_item.get("title")       or "").strip()
-        image_url = (news_item.get("image_url")   or "").strip()
-        desc      = (news_item.get("description") or "").strip()
-        news_type = (news_item.get("type")        or "world").strip()
+        title          = (news_item.get("title")          or "").strip()
+        original_title = (news_item.get("original_title") or "").strip()
+        image_url      = (news_item.get("image_url")      or "").strip()
+        desc           = (news_item.get("description")    or "").strip()
+        news_type      = (news_item.get("type")           or "world").strip()
+
+        # Для поиска фото предпочитаем оригинальный EN заголовок —
+        # он даёт более релевантные результаты в Pixabay/Pexels
+        search_title = original_title or title
 
         # 1. Скачать оригинальное фото статьи
         img = download_image(image_url) if image_url else None
         if img:
             print(f"    [OK] Оригинальное фото загружено")
 
-        # 2. Fallback → Picsum Photos (seed детерминирован по заголовку)
+        # 2. Fallback → Pixabay → Pexels → Picsum
         if img is None:
-            print(f"    [>] Нет фото, берём Picsum...")
-            img = get_fallback_image(title, news_type)
+            img = get_fallback_image(search_title, news_type)
 
         # 3. FIT-resize + размытый фон (или градиент если img=None)
         img = prepare_background(img, W, H)

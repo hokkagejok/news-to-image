@@ -320,7 +320,8 @@ def translate_all_news(news_list: list[dict]) -> list[dict]:
 
         title_vi = translate(title_orig)
         if title_vi != title_orig:
-            item["title"] = title_vi
+            item["title"]          = title_vi
+            item["original_title"] = title_orig   # сохраняем EN оригинал для поиска фото
             translated_count += 1
 
         if desc_orig:
