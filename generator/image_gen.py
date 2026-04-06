@@ -110,7 +110,18 @@ def create_image(news_item: dict, output_path: str) -> bool:
         original_title = (news_item.get("original_title") or "").strip()
         image_url      = (news_item.get("image_url")      or "").strip()
         desc           = (news_item.get("description")    or "").strip()
-        news_type      = (news_item.get("type")           or "world").strip()
+        source         = (news_item.get("source")         or "").strip()
+
+        # Тип бейджа определяется по source — это надёжнее поля type,
+        # которое могло быть перезаписано в процессе обработки
+        _WORLD_SRC   = {"BBC News", "Lenta.ru", "RIA Novosti"}
+        _VIETNAM_SRC = {"VnExpress", "Tuoi Tre", "Dan Tri"}
+        if source in _WORLD_SRC:
+            news_type = "world"
+        elif source in _VIETNAM_SRC:
+            news_type = "vietnam"
+        else:
+            news_type = (news_item.get("type") or "world").strip()
 
         # 1. Скачать оригинальное фото статьи
         img = download_image(image_url) if image_url else None
@@ -223,19 +234,24 @@ _TOPIC_RULES: list[tuple[list[str], str]] = [
       "война", "удар", "ракет", "взрыв", "атак"],
      "war military explosion"),
 
-    (["israel", "gaza", "palestine", "хамас", "хезболла"],
-     "israel military conflict"),
+    (["ceasefire", "ngừng bắn", "hòa bình", "peace deal", "truce"],
+     "ceasefire peace negotiation"),
 
-    (["iran", "nuclear", "ядерн"],
-     "iran nuclear military"),
+    (["israel", "gaza", "palestine", "hamas", "hezbollah",
+      "хамас", "хезболла"],
+     "israel middle east war"),
+
+    (["iran", "iraq", "nuclear", "ядерн"],
+     "iran middle east military"),
 
     (["ukraine", "ukraina", "україна", "zelensky", "зеленск",
       "nga xâm", "donbas", "kherson", "запорож"],
      "ukraine war military"),
 
-    (["trump", "biden", "harris", "election", "bầu cử",
-      "выборы", "democrat", "republican", "white house"],
-     "politics government leader"),
+    (["trump", "biden", "harris", "zelensky", "зеленск",
+      "putin", "орбан", "orban",
+      "election", "bầu cử", "выборы", "democrat", "republican", "white house"],
+     "world politics leader"),
 
     (["putin", "kremlin", "россия", "nga ", " nga", "russia"],
      "russia kremlin politics"),
@@ -253,8 +269,8 @@ _TOPIC_RULES: list[tuple[list[str], str]] = [
     (["flood", "lũ lụt", "наводнен", "typhoon", "bão", "hurricane", "tsunami"],
      "flood disaster water"),
 
-    (["crash", "tai nạn", "xe", "accident", "катастроф", "авиакатастроф"],
-     "car crash accident road"),
+    (["plane crash", "авиакатастроф", "air crash"],
+     "plane crash aviation accident"),
 
     (["satellite", "vệ tinh", "aerial", "crater", "bombing"],
      "satellite aerial view military"),
@@ -262,13 +278,55 @@ _TOPIC_RULES: list[tuple[list[str], str]] = [
     (["oil", "dầu", "energy", "газ", "нефт", "petrol", "fuel"],
      "oil energy petroleum"),
 
-    (["football", "futsal", "bóng đá", "soccer", "fifa", "world cup",
-      "champion", "league"],
+    # Клубный футбол — конкретные клубы
+    (["liverpool", "manchester", "chelsea", "arsenal",
+      "barcelona", "real madrid", "bayern", "juventus", "psg"],
+     "football soccer stadium crowd"),
+
+    # Звёзды футбола
+    (["van dijk", "messi", "ronaldo", "mbappe", "haaland"],
+     "football player soccer"),
+
+    # Турниры
+    (["fa cup", "champions league", "premier league", "la liga",
+      "world cup", "euro ", " euro", "cúp", "cup", "giải"],
+     "football tournament trophy"),
+
+    # Тренеры
+    (["coach", "hlv", "manager", "trainer"],
+     "football coach tactics"),
+
+    # Общий футбол
+    (["football", "futsal", "bóng đá", "soccer", "fifa", "champion", "league"],
      "football soccer sport"),
 
-    (["economy", "kinh tế", "gdp", "inflation", "stock", "market",
-      "экономик", "финанс", "рынок"],
-     "economy finance business"),
+    # Другие виды спорта
+    (["nba", "basketball", "bóng rổ"],
+     "basketball sport"),
+
+    (["tennis"],
+     "tennis sport"),
+
+    (["boxing", "mma", "kickboxing", "võ thuật", "уличн", "боксёр"],
+     "boxing fight sport"),
+
+    (["bóng chuyền", "volleyball"],
+     "volleyball sport"),
+
+    (["bất động sản", "real estate", "nhà đất", "property"],
+     "real estate building construction"),
+
+    (["tai nạn", "accident", "crash", "xe buýt", "ô tô",
+      "катастроф", "авиакатастроф"],
+     "car accident crash emergency"),
+
+    (["iphone", "smartphone", "công nghệ", "technology", "tech",
+      "điện thoại", "app", "ai ", "artificial intelligence"],
+     "smartphone technology innovation"),
+
+    (["doanh thu", "revenue", "economy", "kinh tế", "gdp",
+      "inflation", "stock", "market", "экономик", "финанс", "рынок"],
+     "business economy finance"),
 
     (["africa", "nigeria", "kenya", "ethiopia", "somalia", "sudan",
       "congo", "châu phi"],
@@ -303,7 +361,19 @@ def get_search_query(title: str, original_title: str = "") -> str:
         if any(kw in title_lower for kw in keywords):
             return en_query
 
-    # 3. Финальный fallback
+    # 3. ASCII-слова длиннее 5 букв из title (первые 2) —
+    #    вьетнамские/русские символы фильтруются через isascii()
+    candidates = [
+        w.rstrip(".,!?:;\"'")
+        for w in title.split()
+        if len(w) > 5
+        and w.lower().rstrip(".,!?:;\"'") not in _STOP_WORDS
+        and w.isascii()
+    ]
+    if candidates:
+        return " ".join(candidates[:2])
+
+    # 4. Финальный fallback
     return "world news today"
 
 
