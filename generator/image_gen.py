@@ -4,7 +4,7 @@
 
 Конвейер create_image:
   1. download_image(url)       — скачать оригинальное фото статьи
-  2. get_fallback_image(title) — если нет фото → Google Images → Picsum (seed)
+  2. get_fallback_image(title) — если нет фото → Pixabay → Pexels → Picsum
   3. prepare_background(img)   — FIT-resize + размытый фон
   4. add_overlay(img)          — градиентный overlay 80→220 alpha
   5. draw_badge(draw, type)    — бейдж типа новости (верх-лево)
@@ -16,10 +16,8 @@ import base64
 import hashlib
 import io
 import os
-import re
 import sys
 import random
-import urllib.parse
 
 import requests
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -56,23 +54,21 @@ BADGE_PAD_Y  = 12
 BADGE_RADIUS = 12
 BADGE_FONT_SZ = 36
 
-# Стоп-слова для Unsplash-запроса (русские, вьетнамские, английские)
+# Стоп-слова для построения поискового запроса (EN + VI + RU)
 _STOP_WORDS = {
+    # английские
     "the", "a", "an", "is", "are", "was", "were",
     "in", "on", "at", "to", "for", "of", "and", "or", "but",
     "with", "that", "this", "it", "he", "she", "they",
     # вьетнамские
-    "voi", "cua", "va", "la", "co", "duoc", "cho", "trong",
-    "mot", "cac", "nhung", "sau", "khi", "da",
+    "và", "của", "là", "trong", "tại", "với", "được", "có",
+    "sau", "cho", "về", "voi", "cua", "va", "la", "co",
+    "duoc", "cho", "trong", "mot", "cac", "nhung", "sau", "khi", "da",
+    # русские
+    "в", "на", "по", "за", "из", "и", "или", "что", "как", "не",
 }
 
 _PICSUM_TIMEOUT = 15
-
-_DDG_UA = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/122.0.0.0 Safari/537.36"
-)
 
 # Пары градиента для фона-заглушки
 _GRADIENT_PAIRS = [
@@ -210,22 +206,44 @@ def download_image(url: str) -> Image.Image | None:
     return None
 
 
+def _extract_query(title: str) -> str:
+    """Убирает стоп-слова и возвращает первые 4 ключевых слова из заголовка."""
+    words = [
+        w for w in title.split()
+        if w.lower().rstrip(".,!?:;\"'") not in _STOP_WORDS and len(w) > 2
+    ]
+    return " ".join(words[:4]) if words else " ".join(title.split()[:4])
+
+
 def get_fallback_image(title: str, news_type: str = "world") -> Image.Image | None:
     """
-    Попытка 1 — DuckDuckGo Images: бесплатно, без API ключей.
-    Попытка 2 — Picsum Photos: детерминированное фото по MD5-seed заголовка.
+    Попытка 1 — Pixabay API (PIXABAY_API_KEY).
+    Попытка 2 — Pexels API  (PEXELS_API_KEY).
+    Попытка 3 — Picsum Photos: детерминированное фото по MD5-seed заголовка.
 
-    Возвращает None только если обе попытки провалились (→ градиентный фон).
+    Возвращает None только если все три провалились (→ градиентный фон).
     """
-    print(f"    [>] Нет фото, ищем через DuckDuckGo...")
+    # Попытка 1 — Pixabay
+    pixabay_key = os.environ.get("PIXABAY_API_KEY", "")
+    if pixabay_key:
+        img = get_pixabay_image(title, pixabay_key)
+        if img:
+            return img
+        print(f"    [Pixabay] Не нашёл, пробуем Pexels...")
+    else:
+        print(f"    [Pixabay] Ключ не задан, пробуем Pexels...")
 
-    # Попытка 1 — DuckDuckGo Images
-    img = get_duckduckgo_image(title)
-    if img:
-        return img
-    print(f"    [DDG] Не нашёл, берём Picsum...")
+    # Попытка 2 — Pexels
+    pexels_key = os.environ.get("PEXELS_API_KEY", "")
+    if pexels_key:
+        img = get_pexels_image(title, pexels_key)
+        if img:
+            return img
+        print(f"    [Pexels] Не нашёл, берём Picsum...")
+    else:
+        print(f"    [Pexels] Ключ не задан, берём Picsum...")
 
-    # Попытка 2 — Picsum (запасной)
+    # Попытка 3 — Picsum (всегда работает)
     seed = int(hashlib.md5(title.encode("utf-8", errors="replace")).hexdigest()[:8], 16) % 1000
 
     for url in [
@@ -252,70 +270,110 @@ def get_fallback_image(title: str, news_type: str = "world") -> Image.Image | No
     return None
 
 
-def get_duckduckgo_image(title: str) -> Image.Image | None:
+def get_pixabay_image(title: str, api_key: str) -> Image.Image | None:
     """
-    Ищет релевантное фото через DuckDuckGo Images — без API ключей.
+    Ищет фото через Pixabay API (бесплатно, до 100 запросов/мин).
 
-    Алгоритм:
-      1. GET duckduckgo.com → извлекает vqd-токен из HTML.
-      2. GET duckduckgo.com/i.js с vqd-токеном → получает JSON со списком картинок.
-      3. Пробует скачать первые 5 результатов, возвращает первое успешное фото.
+    Параметры: image_type=photo, orientation=vertical, min 500×800,
+    per_page=5, order=popular, safesearch=true.
     """
-    import re
-
+    query = _extract_query(title)
+    print(f"    [Pixabay] Ищем: {query!r}")
     try:
-        query   = " ".join(title.split()[:4])
-        encoded = urllib.parse.quote(query)
-
-        # Шаг 1: получить vqd-токен
-        token_resp = requests.get(
-            f"https://duckduckgo.com/?q={encoded}&iax=images&ia=images",
-            headers={"User-Agent": _DDG_UA},
-            timeout=10,
-        )
-        vqd_match = re.search(r'vqd=([\d-]+)', token_resp.text)
-        if not vqd_match:
-            print(f"    [DDG] vqd токен не найден")
-            return None
-
-        vqd = vqd_match.group(1)
-
-        # Шаг 2: запрос списка картинок
-        img_resp = requests.get(
-            f"https://duckduckgo.com/i.js"
-            f"?q={encoded}&vqd={vqd}&f=,,,,,,&p=1",
-            headers={
-                "User-Agent": _DDG_UA,
-                "Referer":    "https://duckduckgo.com/",
+        resp = requests.get(
+            "https://pixabay.com/api/",
+            params={
+                "key":         api_key,
+                "q":           query,
+                "image_type":  "photo",
+                "orientation": "vertical",
+                "min_width":   500,
+                "min_height":  800,
+                "per_page":    5,
+                "order":       "popular",
+                "safesearch":  "true",
             },
             timeout=10,
         )
-        data    = img_resp.json()
-        results = data.get("results", [])
-        print(f"    [DDG] Query: {query!r}, результатов: {len(results)}")
+        data = resp.json()
 
-        # Шаг 3: скачать первое рабочее фото
-        for item in results[:5]:
-            photo_url = item.get("image", "")
+        if "error" in data:
+            print(f"    [Pixabay] API Error: {data['error']}")
+            return None
+
+        hits = data.get("hits", [])
+        for hit in hits:
+            photo_url = hit.get("largeImageURL") or hit.get("webformatURL", "")
             if not photo_url:
                 continue
             try:
                 photo = requests.get(
                     photo_url,
-                    timeout=8,
+                    timeout=10,
                     headers={"User-Agent": "Mozilla/5.0"},
                 )
                 if photo.status_code == 200 and len(photo.content) > 5_000:
                     img = Image.open(io.BytesIO(photo.content)).convert("RGB")
                     if img.width > 200 and img.height > 200:
-                        print(f"    [DDG] OK: {query!r}")
+                        print(f"    [Pixabay] OK: {photo_url[:60]}")
                         return img
             except Exception as e:
-                print(f"    [DDG] Фото не загрузилось: {e}")
+                print(f"    [Pixabay] Фото не загрузилось: {e}")
                 continue
 
     except Exception as e:
-        print(f"    [DDG] Ошибка: {e}")
+        print(f"    [Pixabay] Ошибка: {e}")
+
+    return None
+
+
+def get_pexels_image(title: str, api_key: str) -> Image.Image | None:
+    """
+    Ищет фото через Pexels API (бесплатно, 200 запросов/час).
+
+    Параметры: orientation=portrait, per_page=5.
+    Берёт photos[0]["src"]["large2x"].
+    """
+    query = _extract_query(title)
+    print(f"    [Pexels] Ищем: {query!r}")
+    try:
+        resp = requests.get(
+            "https://api.pexels.com/v1/search",
+            params={
+                "query":       query,
+                "orientation": "portrait",
+                "per_page":    5,
+            },
+            headers={
+                "Authorization": api_key,
+                "User-Agent":    "Mozilla/5.0",
+            },
+            timeout=10,
+        )
+        data = resp.json()
+
+        photos = data.get("photos", [])
+        for photo_item in photos:
+            photo_url = photo_item.get("src", {}).get("large2x", "")
+            if not photo_url:
+                continue
+            try:
+                photo = requests.get(
+                    photo_url,
+                    timeout=10,
+                    headers={"User-Agent": "Mozilla/5.0"},
+                )
+                if photo.status_code == 200 and len(photo.content) > 5_000:
+                    img = Image.open(io.BytesIO(photo.content)).convert("RGB")
+                    if img.width > 200 and img.height > 200:
+                        print(f"    [Pexels] OK: {photo_url[:60]}")
+                        return img
+            except Exception as e:
+                print(f"    [Pexels] Фото не загрузилось: {e}")
+                continue
+
+    except Exception as e:
+        print(f"    [Pexels] Ошибка: {e}")
 
     return None
 
