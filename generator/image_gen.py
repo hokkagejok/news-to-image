@@ -214,7 +214,7 @@ def get_fallback_image(title: str, news_type: str = "world") -> Image.Image | No
     cx = os.environ.get("GOOGLE_CX", "")
 
     print(f"    [>] Нет фото, ищем через Google...")
-    print(f"    [Debug] KEY={'SET' if api_key else 'EMPTY'} CX={'SET' if cx else 'EMPTY'}")
+    print(f"    [Debug] KEY={'SET:' + api_key[:4] if api_key else 'EMPTY'} CX={'SET' if cx else 'EMPTY'}")
 
     # Попытка 1 — Google Images (самое релевантное)
     if api_key and cx:

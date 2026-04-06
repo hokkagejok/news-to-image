@@ -22,15 +22,6 @@ OVERLAY_OPACITY  = 180  # 0-255, 180 ≈ 70%
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID   = os.environ.get("TELEGRAM_CHAT_ID", "")
 
-# === Google Custom Search (для поиска релевантных фото) ===
-# API Key: https://console.developers.google.com → включить "Custom Search API"
-# CX (Search Engine ID): https://cse.google.com → создать поисковик → "Search entire web"
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
-GOOGLE_CX      = os.environ.get("GOOGLE_CX", "")
-
-print(f"[Config] GOOGLE_API_KEY: {'SET' if GOOGLE_API_KEY else 'EMPTY'}")
-print(f"[Config] GOOGLE_CX: {'SET' if GOOGLE_CX else 'EMPTY'}")
-
 # === HTTP заголовки ===
 HEADERS = {
     "User-Agent": (
