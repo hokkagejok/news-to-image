@@ -112,10 +112,6 @@ def create_image(news_item: dict, output_path: str) -> bool:
         desc           = (news_item.get("description")    or "").strip()
         news_type      = (news_item.get("type")           or "world").strip()
 
-        # Для поиска фото предпочитаем оригинальный EN заголовок —
-        # он даёт более релевантные результаты в Pixabay/Pexels
-        search_title = original_title or title
-
         # 1. Скачать оригинальное фото статьи
         img = download_image(image_url) if image_url else None
         if img:
@@ -123,7 +119,7 @@ def create_image(news_item: dict, output_path: str) -> bool:
 
         # 2. Fallback → Pixabay → Pexels → Picsum
         if img is None:
-            img = get_fallback_image(search_title, news_type)
+            img = get_fallback_image(title, original_title)
 
         # 3. FIT-resize + размытый фон (или градиент если img=None)
         img = prepare_background(img, W, H)
@@ -220,18 +216,117 @@ def _extract_query(title: str) -> str:
     return " ".join(words[:4]) if words else " ".join(title.split()[:4])
 
 
-def get_fallback_image(title: str, news_type: str = "world") -> Image.Image | None:
+# Тематические правила: (список ключевых слов для совпадения, английский запрос для поиска)
+_TOPIC_RULES: list[tuple[list[str], str]] = [
+    (["chiến tranh", "tấn công", "bom", "rocket", "missile",
+      "war", "bomb", "explosion", "attack", "strike",
+      "война", "удар", "ракет", "взрыв", "атак"],
+     "war military explosion"),
+
+    (["israel", "gaza", "palestine", "хамас", "хезболла"],
+     "israel military conflict"),
+
+    (["iran", "nuclear", "ядерн"],
+     "iran nuclear military"),
+
+    (["ukraine", "ukraina", "україна", "zelensky", "зеленск",
+      "nga xâm", "donbas", "kherson", "запорож"],
+     "ukraine war military"),
+
+    (["trump", "biden", "harris", "election", "bầu cử",
+      "выборы", "democrat", "republican", "white house"],
+     "politics government leader"),
+
+    (["putin", "kremlin", "россия", "nga ", " nga", "russia"],
+     "russia kremlin politics"),
+
+    (["xi jinping", "china", "trung quốc", "китай", "beijing"],
+     "china politics government"),
+
+    (["orban", "modi", "macron", "scholz", "president", "chancellor",
+      "prime minister", "tổng thống", "thủ tướng", "президент"],
+     "world leader politics"),
+
+    (["earthquake", "động đất", "землетрясен"],
+     "earthquake disaster destruction"),
+
+    (["flood", "lũ lụt", "наводнен", "typhoon", "bão", "hurricane", "tsunami"],
+     "flood disaster water"),
+
+    (["crash", "tai nạn", "xe", "accident", "катастроф", "авиакатастроф"],
+     "car crash accident road"),
+
+    (["satellite", "vệ tinh", "aerial", "crater", "bombing"],
+     "satellite aerial view military"),
+
+    (["oil", "dầu", "energy", "газ", "нефт", "petrol", "fuel"],
+     "oil energy petroleum"),
+
+    (["football", "futsal", "bóng đá", "soccer", "fifa", "world cup",
+      "champion", "league"],
+     "football soccer sport"),
+
+    (["economy", "kinh tế", "gdp", "inflation", "stock", "market",
+      "экономик", "финанс", "рынок"],
+     "economy finance business"),
+
+    (["africa", "nigeria", "kenya", "ethiopia", "somalia", "sudan",
+      "congo", "châu phi"],
+     "africa people landscape"),
+
+    (["north korea", "triều tiên", "kim jong", "северная корея"],
+     "north korea military"),
+
+    (["sanction", "торговля", "tарифы", "tariff", "trade", "thương mại"],
+     "trade sanctions economy"),
+]
+
+
+def get_search_query(title: str, original_title: str = "") -> str:
+    """
+    Возвращает английский поисковый запрос для Pixabay/Pexels.
+
+    Приоритеты:
+      1. Если original_title не пуст — извлечь ключевые слова из него (EN).
+      2. Проверить title на совпадение с тематическими правилами — вернуть
+         готовый английский запрос.
+      3. Если ничего не совпало и есть original_title — первые 3 слова из него.
+      4. Финальный fallback — "world news today".
+    """
+    # 1. Есть английский оригинал — использовать его
+    if original_title.strip():
+        return _extract_query(original_title)
+
+    # 2. Тематические правила по содержимому заголовка
+    title_lower = title.lower()
+    for keywords, en_query in _TOPIC_RULES:
+        if any(kw in title_lower for kw in keywords):
+            return en_query
+
+    # 3. Финальный fallback
+    return "world news today"
+
+
+def get_fallback_image(
+    title: str,
+    original_title: str = "",
+) -> Image.Image | None:
     """
     Попытка 1 — Pixabay API (PIXABAY_API_KEY).
     Попытка 2 — Pexels API  (PEXELS_API_KEY).
     Попытка 3 — Picsum Photos: детерминированное фото по MD5-seed заголовка.
 
-    Возвращает None только если все три провалились (→ градиентный фон).
+    Поисковый запрос строится через get_search_query:
+      - EN оригинал → _extract_query(original_title)
+      - VI/RU заголовок → тематические правила → английский запрос
     """
+    query = get_search_query(title, original_title)
+    print(f"    [>] Нет фото, ищем: {query!r}")
+
     # Попытка 1 — Pixabay
     pixabay_key = os.environ.get("PIXABAY_API_KEY", "")
     if pixabay_key:
-        img = get_pixabay_image(title, pixabay_key)
+        img = get_pixabay_image(query, pixabay_key)
         if img:
             return img
         print(f"    [Pixabay] Не нашёл, пробуем Pexels...")
@@ -241,7 +336,7 @@ def get_fallback_image(title: str, news_type: str = "world") -> Image.Image | No
     # Попытка 2 — Pexels
     pexels_key = os.environ.get("PEXELS_API_KEY", "")
     if pexels_key:
-        img = get_pexels_image(title, pexels_key)
+        img = get_pexels_image(query, pexels_key)
         if img:
             return img
         print(f"    [Pexels] Не нашёл, берём Picsum...")
